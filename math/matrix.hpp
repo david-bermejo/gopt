@@ -1,0 +1,210 @@
+#pragma once
+
+#include "vector.hpp"
+#include "../meta/range.hpp"
+
+#include <algorithm>
+#include <string>
+
+namespace math
+{
+	template <typename T, unsigned int R, unsigned int C>
+	class Matrix_t
+	{
+	private:
+		Vector_t<Vector_t<T, C>, R> data;
+
+	private:
+		template <unsigned int... Seq, typename Tuple>
+		Matrix_t(std::integer_sequence<unsigned int, Seq...>, Tuple&& tuple)
+			: data{Vector_t<T, C>(meta::make_integer_range<Seq * C, (Seq + 1) * C>{}, tuple)...} {}
+
+	public:
+		Matrix_t() {}
+
+		Matrix_t(const T& t)
+		{
+			std::fill_n(&data[0][0], R * C, t);
+		}
+
+		template <typename... Ts, typename = typename std::enable_if_t<(sizeof...(Ts) == R*C)>>
+		Matrix_t(Ts... ts)
+			: Matrix_t(std::make_integer_sequence<unsigned int, R>{}, std::make_tuple(ts...)) {}
+
+		Matrix_t(const Matrix_t& m)
+			: data(m.data) {}
+
+		Matrix_t& add(const Matrix_t& m)
+		{
+			for (int i = 0; i < R; i++)
+				for (int j = 0; j < C; j++)
+					data[i][j] += m.data[i][j];
+			return *this;
+		}
+
+		Matrix_t& sub(const Matrix_t& m)
+		{
+			for (int i = 0; i < R; i++)
+				for (int j = 0; j < C; j++)
+					data[i][j] -= m.data[i][j];
+			return *this;
+		}
+
+		template <typename = typename std::enable_if_t<R==C>>
+		Matrix_t& mul(const Matrix_t& m)
+		{
+			Matrix_t<T, R, C> res;
+
+			for (int i = 0; i < R; i++)
+			{
+				for (int j = 0; j < C; j++)
+				{
+					T tmp = 0;
+					for (int k = 0; k < R; k++)
+						tmp += data[i][k] * m.data[k][j];
+					res[i][j] = tmp;
+				}
+			}
+
+			data = res.data;
+			return *this;
+		}
+
+		Matrix_t& mul(const T& s)
+		{
+			for (int i = 0; i < R; i++)
+				for (int j = 0; j < C; j++)
+					data[i][j] *= s;
+			return *this;
+		}
+
+		Matrix_t& div(const T& s)
+		{
+			for (int i = 0; i < R; i++)
+				for (int j = 0; j < C; j++)
+					data[i][j] /= s;
+			return *this;
+		}
+
+		friend Matrix_t operator+(Matrix_t lhs, const Matrix_t& rhs)
+		{
+			return lhs.add(rhs);
+		}
+
+		friend Matrix_t operator-(Matrix_t lhs, const Matrix_t& rhs)
+		{
+			return lhs.sub(rhs);
+		}
+
+		template <unsigned int Cols>
+		friend Matrix_t operator*(const Matrix_t<T, R, C>& lhs, const Matrix_t<T, C, Cols>& rhs)
+		{
+			Matrix_t<T, R, Cols> res;
+
+			for (int i = 0; i < R; i++)
+			{
+				for (int j = 0; j < Cols; j++)
+				{
+					T tmp = 0;
+					for (int k = 0; k < C; k++)
+						tmp += lhs[i][k] * rhs[k][j];
+					res[i][j] = tmp;
+				}
+			}
+
+			return res;
+		}
+
+		friend Matrix_t operator*(const T& s, Matrix_t m)
+		{
+			return m.mul(s);
+		}
+
+		friend Matrix_t operator*(Matrix_t m, const T& s)
+		{
+			return m.mul(s);
+		}
+
+		friend Matrix_t operator/(Matrix_t m, const T& s)
+		{
+			return m.div(s);
+		}
+
+		Matrix_t& operator+=(const Matrix_t& m)
+		{
+			return add(m);
+		}
+
+		Matrix_t& operator-=(const Matrix_t& m)
+		{
+			return sub(m);
+		}
+
+		Matrix_t& operator*=(const Matrix_t& m)
+		{
+			return mul(m);
+		}
+
+		Matrix_t& operator*=(const T& s)
+		{
+			return mul(s);
+		}
+
+		Matrix_t& operator/=(const T& s)
+		{
+			return div(s);
+		}
+
+		T* begin()
+		{
+			return &data[0][0];
+		}
+
+		const T* begin() const
+		{
+			return &data[0][0];
+		}
+
+		T* end()
+		{
+			return &data[0][0] + R*C;
+		}
+
+		const T* end() const
+		{
+			return &data[0][0] + R * C;
+		}
+
+		Vector_t<T, C>& operator[](unsigned int index)
+		{
+			return data[index];
+		}
+
+		const Vector_t<T, C> operator[](unsigned int index) const
+		{
+			return data[index];
+		}
+
+		std::string toString() const
+		{
+			std::string res = "Matrix<";
+			res += std::string(typeid(T).name()) + ", " + std::to_string(R) + ", " + std::to_string(C) + ">{";
+			for (int i = 0; i < R; i++)
+			{
+				res += "\n\t[" + std::to_string(data[i][0]);
+
+				for (int j = 1; j < C; j++)
+					res += ", " + std::to_string(data[i][j]);
+
+				res += "]";
+			}
+			res += "\n}";
+
+			return res;
+		}
+
+		constexpr unsigned int rows() const { return R; }
+		constexpr unsigned int columns() const { return C; }
+		constexpr unsigned int size() const { return R * C; }
+	};
+}
