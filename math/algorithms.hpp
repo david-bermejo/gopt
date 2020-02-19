@@ -6,6 +6,30 @@
 namespace math
 {
 	template <typename T, unsigned int S>
+	T max(const Vector_t<T, S>& v)
+	{
+		T res = v[0];
+
+		for (int i = 1; i < S; i++)
+			if (res < v[i])
+				res = v[i];
+
+		return res;
+	}
+
+	template <typename T, unsigned int S>
+	T min(const Vector_t<T, S>& v)
+	{
+		T res = v[0];
+
+		for (int i = 1; i < S; i++)
+			if (res > v[i])
+				res = v[i];
+
+		return res;
+	}
+
+	template <typename T, unsigned int S>
 	T dot(const Vector_t<T, S>& lhs, const Vector_t<T, S>& rhs)
 	{
 		return lhs * rhs;
