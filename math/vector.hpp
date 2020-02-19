@@ -2,7 +2,7 @@
 
 #include <array>
 #include <algorithm>
-#include <cmath>
+#include <string>
 
 namespace math
 {
@@ -174,6 +174,22 @@ namespace math
 		const T operator[](const unsigned int index) const
 		{
 			return data[index];
+		}
+
+		std::string toString() const
+		{
+			std::string res = "Vector<";
+			res += std::string(typeid(T).name()) + "," + std::to_string(S) + ">{" + std::to_string(data[0]);
+			for (int i = 1; i < S; i++)
+				res += ", " + std::to_string(data[i]);
+			res += "}";
+			return res;
+		}
+
+		friend std::ostream& operator<<(std::ostream& os, const Vector_t<T, S>& v)
+		{
+			os << v.toString();
+			return os;
 		}
 
 		constexpr unsigned int size() const { return S; }

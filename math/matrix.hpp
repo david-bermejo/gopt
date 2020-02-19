@@ -203,6 +203,12 @@ namespace math
 			return res;
 		}
 
+		friend std::ostream& operator<<(std::ostream& os, const Matrix_t<T, R, C>& v)
+		{
+			os << v.toString();
+			return os;
+		}
+
 		constexpr unsigned int rows() const { return R; }
 		constexpr unsigned int columns() const { return C; }
 		constexpr unsigned int size() const { return R * C; }
