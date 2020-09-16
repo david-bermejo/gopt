@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <string>
 
-namespace math
+namespace gopt
 {
 	template <typename T, unsigned int R, unsigned int C>
 	class Matrix_t
@@ -214,11 +214,11 @@ namespace math
 		constexpr unsigned int size() const { return R * C; }
 	};
 
-	#ifdef SINGLE_PRECISION
-		template <unsigned int R, unsigned int C>
-		using Matrix = Matrix_t<float, R, C>;
-	#else
-		template <unsigned int R, unsigned int C>
-		using Matrix = Matrix_t<double, R, C>;
-	#endif
+#ifdef SINGLE_PRECISION
+	template <unsigned int R, unsigned int C>
+	using Matrix = Matrix_t<float, R, C>;
+#else
+	template <unsigned int R, unsigned int C>
+	using Matrix = Matrix_t<double, R, C>;
+#endif
 }

@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-namespace math
+namespace gopt
 {
 	template <typename T = double>
 	constexpr T e = 2.7182818284590452353602875;

@@ -6,7 +6,7 @@
 
 int main()
 {
-	using namespace math;
+	using namespace gopt;
 
 	Vector<3> v(3, 3, 3);
 	Matrix<3, 3> M(4, 12, -16, 12, 37, -43, -16, -43, 98);

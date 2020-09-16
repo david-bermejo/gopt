@@ -3,7 +3,7 @@
 #include "vector.hpp"
 #include "matrix.hpp"
 
-namespace math
+namespace gopt
 {
 	template <typename T, unsigned int S>
 	T max(const Vector_t<T, S>& v)

@@ -2,7 +2,7 @@
 
 #include "vector.hpp"
 
-namespace math
+namespace gopt
 {
 	namespace internal_RKN7
 	{

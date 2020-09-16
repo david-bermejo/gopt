@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <string>
 
-namespace math
+namespace gopt
 {
 	template <typename T, unsigned int S>
 	class Vector_t
