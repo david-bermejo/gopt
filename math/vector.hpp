@@ -195,11 +195,11 @@ namespace math
 		constexpr unsigned int size() const { return S; }
 	};
 
-#ifdef DOUBLE_PRECISION
-	template <unsigned int S>
-	using Vector = Vector_t<double, S>;
-#else
+#ifdef SINGLE_PRECISION
 	template <unsigned int S>
 	using Vector = Vector_t<float, S>;
+#else
+	template <unsigned int S>
+	using Vector = Vector_t<double, S>;
 #endif
 }
