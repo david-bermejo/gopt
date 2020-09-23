@@ -277,7 +277,7 @@ namespace gopt
 			{
 				Vector_t<T, N> x_k = x0 + dx0 * (alpha<T>[k] * h);
 				Vector_t<T, N> dx_k = dx0;
-				T t_k = t0 + alpha<T>[k] * h;
+				const T t_k = t0 + alpha<T>[k] * h;
 
 				for (int i = 0; i < k; i++)
 				{
@@ -453,8 +453,11 @@ namespace gopt
 
 				for (int i = 0; i < k; i++)
 				{
-					x_k += f_k[i] * (h * h * gamma<T>[k][i]);
-					dx_k += f_k[i] * (h * beta<T>[k][i]);
+					const T gamma_loc = gamma<T>[k][i];
+					if (gamma_loc) x_k += f_k[i] * (h * h * gamma_loc);
+
+					const T beta_loc = beta<T>[k][i];
+					if (beta_loc) dx_k += f_k[i] * (h * beta_loc);
 				}
 
 				f_k[k] = f(x_k, dx_k, t_k);
