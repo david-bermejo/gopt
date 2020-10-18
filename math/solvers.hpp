@@ -1,6 +1,9 @@
 #pragma once
 
+#include "algorithms.hpp"
+#include "constants.hpp"
 #include "vector.hpp"
+#include <cmath>
 
 namespace gopt
 {
@@ -629,5 +632,202 @@ namespace gopt
 		}
 
 		return res;
+	}
+
+	namespace internal_DP45
+	{
+		template <typename T>
+		static const T c[7] =
+		{
+			0,
+			static_cast<T>(1) / 5,
+			static_cast<T>(3) / 10,
+			static_cast<T>(4) / 5,
+			static_cast<T>(8) / 9,
+			1,
+			1
+		};
+
+		template <typename T>
+		static const T a[7][6] =
+		{
+			{0},
+			{
+				static_cast<T>(1) / 5
+			},
+			{
+				static_cast<T>(3) / 40,
+				static_cast<T>(9) / 40
+			},
+			{
+				static_cast<T>(44) / 45,
+				-static_cast<T>(56) / 15,
+				static_cast<T>(32) / 9
+			},
+			{
+				static_cast<T>(19372) / 6561,
+				-static_cast<T>(25360) / 2187,
+				static_cast<T>(64448) / 6561,
+				-static_cast<T>(212) / 729
+			},
+			{
+				static_cast<T>(9017) / 3168,
+				-static_cast<T>(355) / 33,
+				static_cast<T>(46732) / 5247,
+				static_cast<T>(49) / 176,
+				-static_cast<T>(5103) / 18656
+			},
+			{
+				static_cast<T>(35) / 384,
+				0,
+				static_cast<T>(500) / 1113,
+				static_cast<T>(125) / 192,
+				-static_cast<T>(2187) / 6784,
+				static_cast<T>(11) / 84
+			}
+		};
+
+		template <typename T>
+		static const T b[2][7] =
+		{
+			{
+				static_cast<T>(35) / 384,
+				0,
+				static_cast<T>(500) / 1113,
+				static_cast<T>(125) / 192,
+				-static_cast<T>(2187) / 6784,
+				static_cast<T>(11) / 84,
+				0
+			},
+			{
+				static_cast<T>(5179) / 57600,
+				0,
+				static_cast<T>(7571) / 16695,
+				static_cast<T>(393) / 640,
+				-static_cast<T>(92097) / 339200,
+				static_cast<T>(187) / 2100,
+				static_cast<T>(1) / 40
+			}
+		};
+
+		template <typename T>
+		static const T e[7] =
+		{
+			b<T>[0][0] - b<T>[1][0],
+			b<T>[0][1] - b<T>[1][1],
+			b<T>[0][2] - b<T>[1][2],
+			b<T>[0][3] - b<T>[1][3],
+			b<T>[0][4] - b<T>[1][4],
+			b<T>[0][5] - b<T>[1][5],
+			b<T>[0][6] - b<T>[1][6]
+		};
+
+		template <typename T, typename F, unsigned int N>
+		void step(F& f, const Vector_t<T, N>& x0, Vector_t<Vector_t<T, N>, 7>& f_k, T t0, T h)
+		{
+			for (int k = 0; k < 7; k++)
+			{
+				Vector_t<T, N> x_k = x0;
+				T t_k = t0 + c<T>[k] * h;
+
+				for (int i = 0; i < k; i++)
+				{
+					const T a_loc = a<T>[k][i];
+					if (a_loc) x_k += f_k[i] * (h * a_loc);
+				}
+
+				f_k[k] = f(x_k, t_k);
+			}
+		}
+
+		template <typename T, unsigned int N>
+		T calculate_error(const Vector_t<T, N>& x0, Vector_t<T, N>& xnew, const Vector_t<Vector_t<T, N>, 7>& f_k, const T h, const T rtol, const T threshold)
+		{
+			Vector_t<T, N> fE = e<T>[0] * f_k[0];
+			for (int i = 2; i < 7; i++)
+				fE += e<T>[i] * f_k[i];
+			
+			xnew = x0 + (b<T>[0][0]*f_k[0] + b<T>[0][2]*f_k[2] + b<T>[0][3]*f_k[3] + b<T>[0][4]*f_k[4] + b<T>[0][5]*f_k[5]) * h;
+			const Vector_t<T, N> xnew_abs = abs(xnew);
+			const Vector_t<T, N> x_abs = abs(x0);
+
+			Vector_t<T, N> tmp;
+			for (int i = 0; i < N; i++)
+				tmp[i] = fE[i] / std::max(std::max(x_abs[i], xnew_abs[i]), threshold);
+			return max(abs(tmp)) * h;
+		}
+
+		template <typename T, unsigned int N>
+		void update_step(Vector_t<T, N>& x_i, T& t_i, const Vector_t<Vector_t<T, N>, 7>& f_k, T h)
+		{
+			x_i += (b<T>[0][0]*f_k[0] + b<T>[0][2]*f_k[2] + b<T>[0][3]*f_k[3] + b<T>[0][4]*f_k[4] + b<T>[0][5]*f_k[5]) * h;
+			t_i += h;
+		}
+	}
+
+	template <typename T, typename F, unsigned int N>
+	Vector_t<T,N> DP45(F& f, const Vector_t<T, N>& x0, const T t0, const T tf, const T rtol = 1e-3, const T atol = 1e-6, const T h0 = static_cast<T>(0))
+	{
+		const T threshold = atol / rtol;
+		T remaining = tf - t0;
+
+		// Calculate initial h step if no one is provided.
+		T h;
+		if (!h0)
+		{
+			h = (tf - t0) / 10;
+			const Vector_t<T, N> f0 = f(x0, t0);
+			const Vector_t<T, N> x_abs = abs(x0);
+			Vector_t<T, N> tmp;
+
+			for (int i = 0; i < N; i++)
+				tmp[i] = f0[i] / std::max(x_abs[i], threshold);
+
+			const T rh = max(abs(tmp)) / (static_cast<T>(0.8) * std::pow(rtol, static_cast<T>(0.2)));
+
+			if (h * rh > 1)
+				h = 1 / rh;
+		}
+		else
+			h = h0;
+
+		Vector_t<T, N> xnew;
+
+		// Initialize x_i and t_i variables.
+		Vector_t<T, N> x_i = x0;
+		T t_i = t0;
+
+		// Declare the vector which holds the intermediate solutions of the function provided at each timestep.
+		Vector_t<Vector_t<T, N>, 7> f_k;
+
+		while (remaining > 0)
+		{
+			if (h * static_cast<T>(1.1) > remaining)
+			{
+				h = remaining;
+				internal_DP45::step(f, x_i, f_k, t_i, h);
+				remaining = 0;
+
+				internal_DP45::update_step(x_i, t_i, f_k, h);
+				break;
+			}
+
+			internal_DP45::step(f, x_i, f_k, t_i, h);
+			const T error = internal_DP45::calculate_error(x_i, xnew, f_k, h, rtol, threshold);
+
+			if (error > rtol)
+				h *= std::max(static_cast<T>(0.1), static_cast<T>(0.8) * std::pow(rtol / error, static_cast<T>(0.2)));
+			else
+			{
+				x_i = xnew;
+				t_i += h;
+				remaining -= h;
+
+				const T tmp = static_cast<T>(1.25) * std::pow(error / rtol, static_cast<T>(0.2));
+				h = (tmp > 0.2) ? h / tmp : h * 5;
+			}
+		}
+
+		return x_i;
 	}
 }

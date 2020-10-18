@@ -11,5 +11,5 @@ namespace gopt
 	constexpr T pi = 3.141592653589793238462643383279;
 
 	template <typename T = double>
-	constexpr T epsilon = std::numeric_limits<T>::epsilon();
+	constexpr T epsilon(const T x) { return std::nextafter(x, x + 0.1) - x; }
 }
