@@ -151,6 +151,84 @@ namespace gopt
 		return res;
 	}
 
+	template <typename T>
+	Matrix_t<T, 4, 4> translation(const T& x, const T& y, const T& z)
+	{
+		Matrix_t<T, 4, 4> res = eye<T, 4>();
+		res[0][3] = x;
+		res[1][3] = y;
+		res[2][3] = z;
+
+		return res;
+	}
+
+	template <typename T>
+	Matrix_t<T, 4, 4> translation(const Vector_t<T, 3>& v)
+	{
+		Matrix_t<T, 4, 4> res = eye<T, 4>();
+		res[0][3] = v[0];
+		res[1][3] = v[1];
+		res[2][3] = v[2];
+
+		return res;
+	}
+
+	template <typename T>
+	Matrix_t<T, 4, 4> scaling(const T& x, const T& y, const T& z)
+	{
+		Matrix_t<T, 4, 4> res = eye<T, 4>();
+		res[0][0] = x;
+		res[1][1] = y;
+		res[2][2] = z;
+
+		return res;
+	}
+
+	template <typename T>
+	Matrix_t<T, 4, 4> scaling(const Vector_t<T, 3>& v)
+	{
+		Matrix_t<T, 4, 4> res = eye<T, 4>();
+		res[0][0] = v[0];
+		res[1][1] = v[1];
+		res[2][2] = v[2];
+
+		return res;
+	}
+
+	// Build ZYX rotation matrix using yaw, pitch and roll angles (Euler angles).
+	template <typename T>
+	Matrix_t<T, 4, 4> rotation(const T& yaw, const T& pitch, const T& roll)
+	{
+		const T sz = std::sin(yaw);
+		const T cz = std::cos(yaw);
+		const T sy = std::sin(pitch);
+		const T cy = std::cos(pitch);
+		const T sx = std::sin(roll);
+		const T cx = std::cos(roll);
+
+		return Matrix_t<T, 4, 4>
+		{
+			cz*cy, cz*sy*sx - sz*cx, cz*sy*cx + sz*sx,
+			sz*cy, sz*sy*sx + cz*cx, sz*sy*cx - cz*sx,
+			-sy, cy*sx, cy*cx
+		};
+	}
+
+	// Return Euler angles from a ZYX rotation matrix in the form of Vec3{yaw, pitch, roll}.
+	template <typename T>
+	Vector_t<T, 3> euler_angles(const Matrix_t<T, 4, 4>& m)
+	{
+		const T r11 = m[0][0];
+		const T r21 = m[1][1];
+
+		return Vector_t<T, 3>
+		{
+			std::atan2(r21, r11),
+			std::atan2(-m[2][0], std::sqrt(r11*r11 + r21*r21)),
+			std::atan2(m[2][1], m[2][2])
+		};
+	}
+
 	template <typename T, unsigned int R, unsigned int C>
 	Matrix_t<T, C, R> transpose(const Matrix_t<T, R, C>& m)
 	{
