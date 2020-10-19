@@ -180,7 +180,7 @@ namespace gopt
 			return data[index];
 		}
 
-		const Vector_t<T, C> operator[](unsigned int index) const
+		const Vector_t<T, C>& operator[](unsigned int index) const
 		{
 			return data[index];
 		}

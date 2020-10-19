@@ -171,7 +171,7 @@ namespace gopt
 			return data[index];
 		}
 
-		const T operator[](const unsigned int index) const
+		const T& operator[](const unsigned int index) const
 		{
 			return data[index];
 		}
