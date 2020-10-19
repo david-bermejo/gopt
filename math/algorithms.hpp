@@ -2,6 +2,7 @@
 
 #include "vector.hpp"
 #include "matrix.hpp"
+#include "constants.hpp"
 
 namespace gopt
 {
@@ -130,6 +131,22 @@ namespace gopt
 
 		for (int i = 0; i < N; i++)
 			res[i][i] = 1;
+
+		return res;
+	}
+
+	template <typename T>
+	Matrix_t<T, 4, 4> perspective(T ar, T fov, T z_near, T z_far)
+	{
+		const T tan_fov = std::tan(radians(fov / 2));
+		const T sub = z_near - z_far;
+		
+		Matrix_t<T, 4, 4> res(0);
+		res[0][0] = static_cast<T>(1) / (ar * tan_fov);
+		res[1][1] = static_cast<T>(1) / tan_fov;
+		res[2][2] = -(z_near + z_far) / sub;
+		res[2][3] = 2 * z_near * z_far / sub;
+		res[3][2] = 1;
 
 		return res;
 	}
