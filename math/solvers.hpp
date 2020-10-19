@@ -766,7 +766,7 @@ namespace gopt
 	}
 
 	template <typename T, typename F, unsigned int N>
-	Vector_t<T,N> DP45(F& f, const Vector_t<T, N>& x0, const T t0, const T tf, const T rtol = 1e-3, const T atol = 1e-6, const T h0 = static_cast<T>(0))
+	Vector_t<T,N> DP45(F& f, const Vector_t<T, N>& x0, const T t0, const T tf, const T rtol = 1e-3, const T atol = 1e-6, const T h0 = 0)
 	{
 		const T threshold = atol / rtol;
 		T remaining = tf - t0;

@@ -17,8 +17,8 @@ Vector<4> f(const Vector<4>& x, double t)
 	{
 		x[2],
 		x[3],
-		-4*t*t*x[0] + 2*x[2]/(std::sqrt(x[0]*x[0] + x[1]*x[1])*std::sqrt(x[2]*x[2] + x[3]*x[3])),
-		-4*t*t*x[1] + 2*x[3]/(std::sqrt(x[0]*x[0] + x[1]*x[1])*std::sqrt(x[2]*x[2] + x[3]*x[3])),
+		-4*t*t*x[0] + 2*x[2] / (std::sqrt(x[0]*x[0] + x[1]*x[1]) * std::sqrt(x[2]*x[2] + x[3]*x[3])),
+		-4*t*t*x[1] + 2*x[3] / (std::sqrt(x[0]*x[0] + x[1]*x[1]) * std::sqrt(x[2]*x[2] + x[3]*x[3])),
 	};
 }
 
