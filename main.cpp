@@ -1,10 +1,6 @@
 #include <iostream>
 
-#include "math/vector.hpp"
-#include "math/matrix.hpp"
-#include "math/algorithms.hpp"
-#include "math/solvers.hpp"
-#include "math/constants.hpp"
+#include "math/gopt.hpp"
 
 #include <chrono>
 #include <iomanip>
