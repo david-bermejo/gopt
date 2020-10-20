@@ -208,9 +208,10 @@ namespace gopt
 
 		return Matrix_t<T, 4, 4>
 		{
-			cz*cy, cz*sy*sx - sz*cx, cz*sy*cx + sz*sx,
-			sz*cy, sz*sy*sx + cz*cx, sz*sy*cx - cz*sx,
-			-sy, cy*sx, cy*cx
+			cz*cy, cz*sy*sx - sz*cx, cz*sy*cx + sz*sx, 0,
+			sz*cy, sz*sy*sx + cz*cx, sz*sy*cx - cz*sx, 0,
+			-sy, cy*sx, cy*cx, 0,
+			0, 0, 0, 1
 		};
 	}
 
