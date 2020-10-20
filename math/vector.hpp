@@ -32,6 +32,13 @@ namespace gopt
 		Vector_t(const Vector_t& v)
 			: data(v.data) {}
 
+		template <typename V, typename = std::enable_if_t<!std::is_same_v<T, V>>>
+		Vector_t(const Vector_t<V, S>& v)
+		{
+			for (int i = 0; i < S; i++)
+				data[i] = static_cast<T>(v[i]);
+		}
+
 		Vector_t& add(const Vector_t& v)
 		{
 			for (int i = 0; i < S; i++)

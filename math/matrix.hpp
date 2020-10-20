@@ -34,6 +34,14 @@ namespace gopt
 		Matrix_t(const Matrix_t& m)
 			: data(m.data) {}
 
+		template <typename V, typename = std::enable_if_t<!std::is_same_v<T, V>>>
+		Matrix_t(const Matrix_t<V, R, C>& m)
+		{
+			for (int i = 0; i < R; i++)
+				for (int j = 0; j < C; j++)
+					data[i][j] = static_cast<T>(m[i][j]);
+		}
+
 		Matrix_t& add(const Matrix_t& m)
 		{
 			for (int i = 0; i < R; i++)
