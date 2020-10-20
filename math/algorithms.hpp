@@ -215,6 +215,26 @@ namespace gopt
 		};
 	}
 
+	// Build ZYX rotation matrix using Euler angles in the form of Vec3{yaw, pitch, roll}.
+	template <typename T>
+	Matrix_t<T, 4, 4> rotation(const Vector_t<T, 3>& euler)
+	{
+		const T sz = std::sin(euler[0]);
+		const T cz = std::cos(euler[0]);
+		const T sy = std::sin(euler[1]);
+		const T cy = std::cos(euler[1]);
+		const T sx = std::sin(euler[2]);
+		const T cx = std::cos(euler[2]);
+
+		return Matrix_t<T, 4, 4>
+		{
+			cz*cy, cz*sy*sx - sz*cx, cz*sy*cx + sz*sx, 0,
+			sz*cy, sz*sy*sx + cz*cx, sz*sy*cx - cz*sx, 0,
+			-sy, cy*sx, cy*cx, 0,
+			0, 0, 0, 1
+		};
+	}
+
 	// Return Euler angles from a ZYX rotation matrix in the form of Vec3{yaw, pitch, roll}.
 	template <typename T>
 	Vector_t<T, 3> euler_angles(const Matrix_t<T, 4, 4>& m)
