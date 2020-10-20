@@ -145,8 +145,8 @@ namespace gopt
 		res[0][0] = static_cast<T>(1) / (ar * tan_fov);
 		res[1][1] = static_cast<T>(1) / tan_fov;
 		res[2][2] = -(z_near + z_far) / sub;
-		res[2][3] = 2 * z_near * z_far / sub;
-		res[3][2] = 1;
+		res[2][3] = -2 * z_near * z_far / sub;
+		res[3][2] = -1;
 
 		return res;
 	}
