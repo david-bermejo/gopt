@@ -13,32 +13,7 @@ namespace gopt
 	private:
 		std::array<T, S> data;
 
-	public:
-		Vector_t() {}
-
-		Vector_t(const T& t)
-		{
-			data.fill(t);
-		}
-
-		template <typename... Ts, typename = typename std::enable_if_t<(sizeof...(Ts) == S)>>
-		Vector_t(const Ts&... ts)
-			: data{static_cast<T>(ts)...} {}
-
-		template <unsigned int... Seq, typename Tuple>
-		Vector_t(std::integer_sequence<unsigned int, Seq...>, Tuple&& tuple)
-			: data{ static_cast<T>(std::get<Seq>(tuple))... } {}
-
-		Vector_t(const Vector_t& v)
-			: data(v.data) {}
-
-		template <typename V, typename = std::enable_if_t<!std::is_same_v<T, V>>>
-		Vector_t(const Vector_t<V, S>& v)
-		{
-			for (int i = 0; i < S; i++)
-				data[i] = static_cast<T>(v[i]);
-		}
-
+	private:
 		Vector_t& add(const Vector_t& v)
 		{
 			for (int i = 0; i < S; i++)
@@ -73,6 +48,32 @@ namespace gopt
 			for (int i = 0; i < S; i++)
 				data[i] /= s;
 			return *this;
+		}
+
+	public:
+		Vector_t() {}
+
+		Vector_t(const T& t)
+		{
+			data.fill(t);
+		}
+
+		template <typename... Ts, typename = typename std::enable_if_t<(sizeof...(Ts) == S)>>
+		Vector_t(const Ts&... ts)
+			: data{static_cast<T>(ts)...} {}
+
+		template <unsigned int... Seq, typename Tuple>
+		Vector_t(std::integer_sequence<unsigned int, Seq...>, Tuple&& tuple)
+			: data{ static_cast<T>(std::get<Seq>(tuple))... } {}
+
+		Vector_t(const Vector_t& v)
+			: data(v.data) {}
+
+		template <typename V, typename = std::enable_if_t<!std::is_same_v<T, V>>>
+		Vector_t(const Vector_t<V, S>& v)
+		{
+			for (int i = 0; i < S; i++)
+				data[i] = static_cast<T>(v[i]);
 		}
 
 		friend Vector_t operator+(Vector_t rhs, const Vector_t& lhs)
@@ -210,4 +211,12 @@ namespace gopt
 	template <unsigned int S>
 	using Vector = Vector_t<double, S>;
 #endif
+
+	using Vec2 = Vector_t<double, 2>;
+	using Vec3 = Vector_t<double, 3>;
+	using Vec4 = Vector_t<double, 4>;
+
+	using Vec2f = Vector_t<float, 2>;
+	using Vec3f = Vector_t<float, 3>;
+	using Vec4f = Vector_t<float, 4>;
 }

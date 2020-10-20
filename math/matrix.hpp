@@ -18,30 +18,7 @@ namespace gopt
 		template <unsigned int... Seq, typename Tuple>
 		Matrix_t(std::integer_sequence<unsigned int, Seq...>, Tuple&& tuple)
 			: data{Vector_t<T, C>(meta::make_integer_range<Seq * C, (Seq + 1) * C>{}, tuple)...} {}
-
-	public:
-		Matrix_t() {}
-
-		Matrix_t(const T& t)
-		{
-			std::fill_n(&data[0][0], R * C, t);
-		}
-
-		template <typename... Ts, typename = typename std::enable_if_t<(sizeof...(Ts) == R*C)>>
-		Matrix_t(Ts... ts)
-			: Matrix_t(std::make_integer_sequence<unsigned int, R>{}, std::make_tuple(ts...)) {}
-
-		Matrix_t(const Matrix_t& m)
-			: data(m.data) {}
-
-		template <typename V, typename = std::enable_if_t<!std::is_same_v<T, V>>>
-		Matrix_t(const Matrix_t<V, R, C>& m)
-		{
-			for (int i = 0; i < R; i++)
-				for (int j = 0; j < C; j++)
-					data[i][j] = static_cast<T>(m[i][j]);
-		}
-
+		
 		Matrix_t& add(const Matrix_t& m)
 		{
 			for (int i = 0; i < R; i++)
@@ -58,7 +35,7 @@ namespace gopt
 			return *this;
 		}
 
-		template <typename = typename std::enable_if_t<R==C>>
+		template <typename = typename std::enable_if_t<R == C>>
 		Matrix_t& mul(const Matrix_t& m)
 		{
 			Matrix_t<T, R, C> res;
@@ -92,6 +69,29 @@ namespace gopt
 				for (int j = 0; j < C; j++)
 					data[i][j] /= s;
 			return *this;
+		}
+
+	public:
+		Matrix_t() {}
+
+		Matrix_t(const T& t)
+		{
+			std::fill_n(&data[0][0], R * C, t);
+		}
+
+		template <typename... Ts, typename = typename std::enable_if_t<(sizeof...(Ts) == R*C)>>
+		Matrix_t(Ts... ts)
+			: Matrix_t(std::make_integer_sequence<unsigned int, R>{}, std::make_tuple(ts...)) {}
+
+		Matrix_t(const Matrix_t& m)
+			: data(m.data) {}
+
+		template <typename V, typename = std::enable_if_t<!std::is_same_v<T, V>>>
+		Matrix_t(const Matrix_t<V, R, C>& m)
+		{
+			for (int i = 0; i < R; i++)
+				for (int j = 0; j < C; j++)
+					data[i][j] = static_cast<T>(m[i][j]);
 		}
 
 		friend Matrix_t operator+(Matrix_t lhs, const Matrix_t& rhs)
@@ -229,4 +229,10 @@ namespace gopt
 	template <unsigned int R, unsigned int C>
 	using Matrix = Matrix_t<double, R, C>;
 #endif
+
+	using Mat3 = Matrix_t<double, 3, 3>;
+	using Mat4 = Matrix_t<double, 4, 4>;
+
+	using Mat3f = Matrix_t<float, 3, 3>;
+	using Mat4f = Matrix_t<float, 4, 4>;
 }
