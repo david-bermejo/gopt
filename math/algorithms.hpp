@@ -145,8 +145,8 @@ namespace gopt
 	Matrix_t<T, 4, 4> perspective(T ar, T fov, T z_near, T z_far)
 	{
 		const T tan_fov = std::tan(radians(fov / 2));
-		const T sub = z_near - z_far;
-		
+		const T sub = z_far - z_near;
+
 		Matrix_t<T, 4, 4> res(0);
 		res[0][0] = static_cast<T>(1) / (ar * tan_fov);
 		res[1][1] = static_cast<T>(1) / tan_fov;
