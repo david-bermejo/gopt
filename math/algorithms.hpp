@@ -92,6 +92,12 @@ namespace gopt
 		return std::acos(dot(lhs, rhs) / (lhs.length() * rhs.length()));
 	}
 
+	template <typename T, unsigned int S>
+	Vector_t<T, S> normalize(const Vector_t<T, S>& v)
+	{
+		return v / v.length();
+	}
+
 	template <typename T, unsigned int R, unsigned int C>
 	Vector_t<T, R> operator*(const Matrix_t<T, R, C>& m, const Vector_t<T, C>& v)
 	{
@@ -231,6 +237,28 @@ namespace gopt
 			cz*cy, cz*sy*sx - sz*cx, cz*sy*cx + sz*sx, 0,
 			sz*cy, sz*sy*sx + cz*cx, sz*sy*cx - cz*sx, 0,
 			-sy, cy*sx, cy*cx, 0,
+			0, 0, 0, 1
+		};
+	}
+
+	template <typename T>
+	Matrix_t<T, 4, 4> rotation(const T& angle, Vector_t<T, 3> axis)
+	{
+		axis = normalize(axis);
+
+		const T s = std::sin(angle);
+		const T c = std::cos(angle);
+		const T t = static_cast<T>(1) - c;
+
+		const T x = axis[0];
+		const T y = axis[1];
+		const T z = axis[2];
+
+		return Matrix_t<T, 4, 4>
+		{
+			t*x*x + c, t*x*y - z*s, t*x*z + y*s, 0,
+			t*x*y + z*s, t*y*y + c, t*y*z - x*s, 0,
+			t*x*z - y*s, t*y*z + x*s, t*z*z + c, 0,
 			0, 0, 0, 1
 		};
 	}
