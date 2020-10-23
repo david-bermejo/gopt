@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
+#include "constants.hpp"
 
 namespace gopt
 {
@@ -76,6 +77,14 @@ namespace gopt
 				data[i] = static_cast<T>(v[i]);
 		}
 
+		friend Vector_t operator-(const Vector_t& v)
+		{
+			Vector_t<T, S> res;
+			for (int i = 0; i < S; i++)
+				res.data[i] = -v.data[i];
+			return res;
+		}
+
 		friend Vector_t operator+(Vector_t rhs, const Vector_t& lhs)
 		{
 			return rhs.add(lhs);
@@ -140,6 +149,14 @@ namespace gopt
 				if (data[i] != v.data[i])
 					return true;
 			return false;
+		}
+
+		bool almost_equal(const Vector_t& v) const
+		{
+			for (int i = 0; i < S; i++)
+				if (std::abs(data[i] - v.data[i]) > weak_epsilon<T>)
+					return false;
+			return true;
 		}
 
 		T magnitude() const

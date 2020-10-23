@@ -3,5 +3,6 @@
 #include "algorithms.hpp"
 #include "constants.hpp"
 #include "matrix.hpp"
+#include "quaternion.hpp"
 #include "solvers.hpp"
 #include "vector.hpp"

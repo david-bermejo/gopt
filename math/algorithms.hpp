@@ -3,6 +3,7 @@
 #include "vector.hpp"
 #include "matrix.hpp"
 #include "constants.hpp"
+#include "quaternion.hpp"
 
 namespace gopt
 {
@@ -98,6 +99,34 @@ namespace gopt
 		return v / v.length();
 	}
 
+	template <typename T>
+	Quaternion_t<T> normalize(const Quaternion_t<T>& q)
+	{
+		return q / q.length();
+	}
+
+	template <typename T>
+	Quaternion_t<T> conjugate(const Quaternion_t<T>& q)
+	{
+		Quaternion_t<T> res;
+		res.w = q.w;
+		res.v = -q.v;
+		return res;
+	}
+
+	template <typename T>
+	Quaternion_t<T> inverse(const Quaternion_t<T>& q)
+	{
+		return conjugate(q) / q.magnitude();
+	}
+
+	template <typename T>
+	Vector_t<T, 3> rotate(const Quaternion_t<T>& q, const Vector_t<T, 3>& v)
+	{
+		Vector_t<T, 3> t = cross(q.v, v); t += t;
+		return v + q.w * t + cross(q.v, t);
+	}
+
 	template <typename T, unsigned int R, unsigned int C>
 	Vector_t<T, R> operator*(const Matrix_t<T, R, C>& m, const Vector_t<T, C>& v)
 	{
@@ -128,6 +157,12 @@ namespace gopt
 		}
 
 		return res;
+	}
+
+	template <typename T>
+	Vector_t<T, 3> operator*(const Quaternion_t<T>& q, const Vector_t<T, 3>& v)
+	{
+		return rotate(q, v);
 	}
 
 	template <typename T, unsigned int N>
@@ -263,6 +298,29 @@ namespace gopt
 		};
 	}
 
+	template <typename T>
+	Matrix_t<T, 4, 4> rotation(const Quaternion_t<T>& q)
+	{
+		const T q1s = 2 * q.x * q.x;
+		const T q2s = 2 * q.y * q.y;
+		const T q3s = 2 * q.z * q.z;
+
+		const T q0q1s = 2 * q.w * q.x;
+		const T q0q2s = 2 * q.w * q.y;
+		const T q0q3s = 2 * q.w * q.z;
+		const T q1q2s = 2 * q.x * q.y;
+		const T q1q3s = 2 * q.x * q.z;
+		const T q2q3s = 2 * q.y * q.z;
+
+		return Matrix_t<T, 4, 4>
+		{
+			1 - q2s - q3s, q1q2s - q0q3s, q1q3s + q0q2s, 0,
+			q1q2s + q0q3s, 1 - q1s - q3s, q2q3s - q0q1s, 0,
+			q1q3s - q0q2s, q2q3s + q0q1s, 1 - q1s - q2s, 0,
+			0, 0, 0, 1
+		};
+	}
+
 	// Return Euler angles from a ZYX rotation matrix in the form of Vec3{yaw, pitch, roll}.
 	template <typename T>
 	Vector_t<T, 3> euler_angles(const Matrix_t<T, 4, 4>& m)
@@ -275,6 +333,27 @@ namespace gopt
 			std::atan2(r21, r11),
 			std::atan2(-m[2][0], std::sqrt(r11*r11 + r21*r21)),
 			std::atan2(m[2][1], m[2][2])
+		};
+	}
+
+	template <typename T>
+	Vector_t<T, 3> euler_angles(const Quaternion_t<T>& q)
+	{
+		const T a = q.w;
+		const T b = q.x;
+		const T c = q.y;
+		const T d = q.z;
+
+		const T a2 = a * a;
+		const T b2 = b * b;
+		const T c2 = c * c;
+		const T d2 = d * d;
+
+		return Vector_t<T, 3>
+		{
+			std::atan2(2*(a*b + c*d), a2 - b2 - c2 + d2),
+			-std::asin(2*(b*d - a*c)),
+			std::atan2(2*(a*d + b*c), a2 + b2 - c2 - d2)
 		};
 	}
 

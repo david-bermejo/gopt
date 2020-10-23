@@ -14,6 +14,9 @@ namespace gopt
 	constexpr inline T epsilon(const T& x) { return std::nextafter(x, x + 0.1) - x; }
 
 	template <typename T = double>
+	constexpr inline T weak_epsilon = static_cast<T>(1.0e-7);
+
+	template <typename T = double>
 	constexpr inline T radians(const T& deg) { return deg * pi<T> / static_cast<T>(180); }
 
 	template <typename T = double>

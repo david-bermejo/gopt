@@ -5,6 +5,8 @@
 #include <chrono>
 #include <iomanip>
 
+#include "unit_tests.hpp"
+
 using namespace gopt;
 
 Vector<4> f(const Vector<4>& x, double t)
@@ -29,6 +31,10 @@ Vector<2> f2(const Vector<2>& x, const Vector<2>& dx, double t)
 
 int main()
 {
+#if _DEBUG
+	unit_tests();
+#endif
+
 	Vector<4> x0 { 0, 1, -std::sqrt(2*pi<>), 0 };
 	Vector<2> x00 { 0, 1 };
 	Vector<2> dx00 {-std::sqrt(2 * pi<>), 0 };
@@ -52,7 +58,7 @@ int main()
 
 	std::cout << "Analytical: {" << std::cos(100.0) << ", " << std::sin(100.0) << "}\n";
 	std::cout << "Results: " << res << std::endl;
-    std::cout << duration.count()/1000.0f << " ms" << std::endl;
+    std::cout << duration.count()/1000.0f << " s" << std::endl;
 
 	system("pause");
 }

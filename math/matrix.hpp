@@ -163,6 +163,33 @@ namespace gopt
 			return div(s);
 		}
 
+		bool operator==(const Matrix_t& m) const
+		{
+			for (int i = 0; i < R; i++)
+				for (int j = 0; j < C; j++)
+					if (data[i][j] != m.data[i][j])
+						return false;
+			return true;
+		}
+
+		bool operator!=(const Matrix_t& m) const
+		{
+			for (int i = 0; i < R; i++)
+				for (int j = 0; j < C; j++)
+					if (data[i][j] != m.data[i][j])
+						return true;
+			return false;
+		}
+
+		bool almost_equal(const Matrix_t& m) const
+		{
+			for (int i = 0; i < R; i++)
+				for (int j = 0; j < C; j++)
+					if (std::abs(data[i][j] - m.data[i][j]) > weak_epsilon<T>)
+						return false;
+			return true;
+		}
+
 		T* begin()
 		{
 			return &data[0][0];
