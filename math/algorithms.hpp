@@ -37,13 +37,13 @@ namespace gopt
 		return lhs * rhs;
 	}
 
-	template <typename T, unsigned int S>
-	Matrix_t<T, S, S> outer(const Vector_t<T, S>& lhs, const Vector_t<T, S>& rhs)
+	template <typename T, unsigned int N, unsigned int M>
+	Matrix_t<T, N, M> outer(const Vector_t<T, N>& lhs, const Vector_t<T, M>& rhs)
 	{
-		Matrix_t<T, S, S> res;
+		Matrix_t<T, N, M> res;
 
-		for (int i = 0; i < S; i++)
-			for (int j = 0; j < S; j++)
+		for (int i = 0; i < N; i++)
+			for (int j = 0; j < M; j++)
 				res[i][j] = lhs[i] * rhs[j];
 
 		return res;
@@ -536,5 +536,30 @@ namespace gopt
 		}
 
 		return res;
+	}
+
+	template <typename T, unsigned int N>
+	Matrix_t<T, N, N> inverse(const Matrix_t<T, N, N>& M)
+	{
+		const Matrix_t<T, N, N> A = cholesky(M);
+		Matrix_t<T, N, N> B;
+
+		for (int i = 0; i < N; i++)
+		{
+			B[i][i] = 1 / A[i][i];
+
+			for (int j = i + 1; j < N; j++)
+			{
+				B[j][i] = 1 / A[j][j];
+
+				T accum = 0;
+				for (int k = i; k < j; k++)
+					accum -= A[j][k] * B[k][i];
+
+				B[j][i] *= accum;
+			}
+		}
+
+		return transpose(B) * B;
 	}
 }

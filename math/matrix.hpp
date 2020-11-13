@@ -105,7 +105,7 @@ namespace gopt
 		}
 
 		template <unsigned int Cols>
-		friend Matrix_t operator*(const Matrix_t<T, R, C>& lhs, const Matrix_t<T, C, Cols>& rhs)
+		friend Matrix_t<T, R, Cols> operator*(const Matrix_t<T, R, C>& lhs, const Matrix_t<T, C, Cols>& rhs)
 		{
 			Matrix_t<T, R, Cols> res;
 

@@ -2,7 +2,10 @@
 
 #include "algorithms.hpp"
 #include "constants.hpp"
+#include "control.hpp"
 #include "matrix.hpp"
 #include "quaternion.hpp"
 #include "solvers.hpp"
 #include "vector.hpp"
+#include "ssrcqkf.hpp"
+#include "ekf.hpp"
