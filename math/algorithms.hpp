@@ -440,37 +440,6 @@ namespace gopt
 	}
 
 	template <typename T, unsigned int N>
-	void lu(const Matrix_t<T, N, N>& M, Matrix_t<T, N, N>& L, Matrix_t<T, N, N>& U)
-	{
-		for (int i = 0; i < N; i++)
-		{
-			L[i][i] = 1;
-
-			for (int j = 0; j < i; j++)
-				U[i][j] = 0;
-
-			for (int j = i + 1; j < N; j++)
-				L[i][j] = 0;
-
-			for (int k = i; k < N; k++)
-			{
-				T sum = 0;
-				for (int j = 0; j < i; j++)
-					sum += L[i][j] * U[j][k];
-				U[i][k] = M[i][k] - sum;
-			}
-
-			for (int k = i + 1; k < N; k++)
-			{
-				T sum = 0;
-				for (int j = 0; j < i; j++)
-					sum = L[k][j] * U[j][i];
-				L[k][i] = (M[k][i] - sum) / U[i][i];
-			}
-		}
-	}
-
-	template <typename T, unsigned int N>
 	void plu(Matrix_t<T, N, N> M, Matrix_t<T, N, N>& P, Matrix_t<T, N, N>& L, Matrix_t<T, N, N>& U)
 	{
 		Vector_t<int, N> p;
@@ -484,8 +453,18 @@ namespace gopt
 
 		for (int k = 0; k < N-1; k++)
 		{
-			if (unsigned int row = maxloc(abs(column(M, k))); row != k)
-				std::swap(p[k], p[row]);
+			T max_val = std::abs(M[k][k]);
+			unsigned int row_index = k;
+			for (int i = k+1; i < N; i++) {
+				const T tmp = std::abs(M[i][k]);
+				if (max_val < tmp) {
+					max_val = tmp;
+					row_index = i;
+				}
+			}
+
+			if (row_index != k)
+				std::swap(p[k], p[row_index]);
 
 			for (int i = k+1; i < N; i++)
 				M[p[i]][k] /= M[p[k]][k];
@@ -542,21 +521,19 @@ namespace gopt
 	Matrix_t<T, N, N> inverse(const Matrix_t<T, N, N>& M)
 	{
 		const Matrix_t<T, N, N> A = cholesky(M);
-		Matrix_t<T, N, N> B;
+		Matrix_t<T, N, N> B(0);
 
 		for (int i = 0; i < N; i++)
 		{
 			B[i][i] = 1 / A[i][i];
 
-			for (int j = i + 1; j < N; j++)
+			for (int j = 0; j < i; j++)
 			{
-				B[j][i] = 1 / A[j][j];
-
 				T accum = 0;
-				for (int k = i; k < j; k++)
-					accum -= A[j][k] * B[k][i];
+				for (int k = j; k < i; k++)
+					accum -= A[i][k] * B[k][j];
 
-				B[j][i] *= accum;
+				B[i][j] = accum / A[i][i];
 			}
 		}
 

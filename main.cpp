@@ -6,27 +6,124 @@
 #include <iomanip>
 
 #include "unit_tests.hpp"
+#include <iostream>
 
 using namespace gopt;
 
-Vector<4> f(const Vector<4>& x, double t)
+struct State
 {
-	return
-	{
-		x[2],
-		x[3],
-		-4*t*t*x[0] + 2*x[2] / (std::sqrt(x[0]*x[0] + x[1]*x[1]) * std::sqrt(x[2]*x[2] + x[3]*x[3])),
-		-4*t*t*x[1] + 2*x[3] / (std::sqrt(x[0]*x[0] + x[1]*x[1]) * std::sqrt(x[2]*x[2] + x[3]*x[3])),
+	union {
+		struct {
+			Vec3 dx;
+			Vec3 omega;
+			Quat q;
+		};
+
+		Vector<10> value;
 	};
+
+	State() {}
+};
+
+struct Observations
+{
+	union {
+		struct {
+			Vec3 accel;
+			Vec3 gyro;
+		};
+
+		Vector<6> value;
+	};
+
+	Observations() {}
+};
+
+
+Vector<10> f(const Vector<10>& x, double t)
+{
+	State res;
+	State& s = *(State*)(&x[0]);
+	const gopt::Quat q = gopt::normalize(s.q);
+
+	//////////////////////
+	Vec2 tvc(0);
+	struct {
+		double m0 = 1.0;
+		double d_com_ct = 0.45;
+		double Ixx = 0.5;
+		double Iyy = 0.5;
+		double Izz = 0.2;
+	} params;
+	//////////////////////
+
+	tvc[1] = radians(5.0) * std::sin(2 * gopt::pi<> * 0.1 * t);
+
+	const double thrust_val = (t <= 5 ? 11 : 0);
+
+	// Build thrust vector in local coordinates.
+	const double sx = std::sin(tvc[0]);
+	const double cx = std::cos(tvc[0]);
+	const double sy = std::sin(tvc[1]);
+	const double cy = std::cos(tvc[1]);
+	const gopt::Vec3 thrust = gopt::Vec3(-sy, -sx * cy, cx * cy) * thrust_val;
+
+	// Gravitational force vector
+	const gopt::Vec3 weight = gopt::Vec3(0, 0, -params.m0 * 9.81);
+
+	// Setup total forces and moments.
+	const gopt::Vec3 forces = gopt::rotate(q, thrust) + weight;
+	const gopt::Vec3 moments = gopt::cross(gopt::Vec3(0, 0, -params.d_com_ct), thrust);
+
+	// Inertia matrix and its inverse.
+	const gopt::Matrix<3, 3> I(params.Ixx, 0, 0, 0, params.Iyy, 0, 0, 0, params.Izz);
+	const gopt::Matrix<3, 3> I_inv(1 / params.Ixx, 0, 0, 0, 1 / params.Iyy, 0, 0, 0, 1 / params.Izz);
+
+	res.dx = forces / params.m0;
+	res.omega = I_inv * (moments - gopt::cross(s.omega, I * s.omega));
+
+	gopt::Quat omega;
+	omega.w = 0;
+	omega.v = s.omega;
+	res.q = (omega * q) / 2;
+
+	return res.value;
 }
 
-Vector<2> f2(const Vector<2>& x, const Vector<2>& dx, double t)
+Vector<6> h(const Vector<10>& x, double t)
 {
-	return
-	{
-		-4*t*t*x[0] + 2*dx[0] / (std::sqrt(x[0]*x[0] + x[1]*x[1]) * std::sqrt(dx[0]*dx[0] + dx[1]*dx[1])),
-		-4*t*t*x[1] + 2*dx[1] / (std::sqrt(x[0]*x[0] + x[1]*x[1]) * std::sqrt(dx[0]*dx[0] + dx[1]*dx[1])),
-	};
+	Observations res;
+	State& p = *(State*)(&x[0]);
+
+	//////////////////////
+	Vec2 tvc(0);
+	struct {
+		double m0 = 1.0;
+	} params;
+	//////////////////////
+
+	tvc[1] = radians(5.0) * std::sin(2 * gopt::pi<> * 0.1 * t);
+
+	const double thrust_val = (t <= 5 ? 11 : 0);
+
+	// Build thrust vector in local coordinates.
+	const double sx = std::sin(tvc[0]);
+	const double cx = std::cos(tvc[0]);
+	const double sy = std::sin(tvc[1]);
+	const double cy = std::cos(tvc[1]);
+	const gopt::Vec3 thrust = gopt::Vec3(-sy, -sx * cy, cx * cy) * thrust_val;
+
+	// Gravitational force vector
+	const gopt::Vec3 weight = gopt::Vec3(0, 0, -params.m0 * 9.81);
+
+	// Setup total forces and moments.
+	const gopt::Quat q = gopt::normalize(p.q);
+	const gopt::Vec3 forces = gopt::rotate(q, thrust) + weight;
+	res.accel = forces / params.m0;
+
+	res.gyro = p.omega;
+
+	return res.value;
 }
 
 int main()
@@ -35,30 +132,69 @@ int main()
 	unit_tests();
 #endif
 
-	Vector<4> x0 { 0, 1, -std::sqrt(2*pi<>), 0 };
-	Vector<2> x00 { 0, 1 };
-	Vector<2> dx00 {-std::sqrt(2 * pi<>), 0 };
-	double t0 = std::sqrt(pi<>/2);
+	State state;
+	state.value = 0;
+	state.q = Quaternion(1.0);
+
+	Observations obs;
+	obs.accel = { 0 };
+	obs.gyro = { 0 };
+
+	Matrix<10, 10> Pxx = gopt::eye<double, 10>() * 0.1;
+	Matrix<10, 10> Q = gopt::eye<double, 10>() * 100;
+	Matrix<6, 6> R = gopt::eye<double, 6>() * 100;
 
 	auto start = std::chrono::system_clock::now();
+	State cons;
+	cons.value = state.value;
+	const int N = 500;
+	for (int i = 0; i < N; i++)
+	{
+		State curr_state;
+		curr_state.value = state.value;
 
-	// TEST CODE
-#if 1
-	Vector<4> res;
-	for (int i = 0; i < 500; i++)
-		res = DP45(f, x0, t0, 10.0, 1.0e-9, 1.0e-9);
-#else
-	Vector<4> res;
-	for (int i = 0; i < 500; i++)
-		res = RKN5(f2, x00, dx00, t0, 10.0, 0.1e-16);
-#endif
+		gopt::DP45(f, curr_state.value, i * 0.01, (i+1)*0.01, 1e-9, 1e-9);
+		obs.accel = (curr_state.dx - state.dx) / 0.01;
+		obs.gyro = curr_state.omega;
+
+		ekf(state.value, obs.value, Pxx, Q, R, f, h, i*0.01, (i+1)*0.01);
+		state.q = gopt::normalize(state.q);
+	}
 
 	auto end = std::chrono::system_clock::now();
-	std::chrono::duration<float, std::milli> duration = end - start;
+	const double time = static_cast<std::chrono::duration<double, std::nano>>(end - start).count() / 1e9;
+	std::cout << "Time: " << time << " s, each: " << time / N << "s." << std::endl;
+	std::cout << state.value << std::endl;
+	std::cout << "Real: " << gopt::DP45(f, cons.value, 0.0, N * 0.01, 1e-9, 1e-9) << std::endl << std::endl;
 
-	std::cout << "Analytical: {" << std::cos(100.0) << ", " << std::sin(100.0) << "}\n";
-	std::cout << "Results: " << res << std::endl;
-    std::cout << duration.count()/1000.0f << " s" << std::endl;
+	//const double time = static_cast<std::chrono::duration<double, std::nano>>(end - start).count() / 1e9;
+
+	// TEST CODE
+	/*const double Kp = 5;
+	const double Ki = 3;
+	const double Kd = 1;
+
+	PID pid(Kp, Ki, Kd);
+	pid.set(1.0);
+
+	while (true)
+	{
+		auto end = std::chrono::system_clock::now();
+		if (const double dt = static_cast<std::chrono::duration<double, std::nano>>(end - start).count() / 1e9; dt >= 0.01)
+		{
+			static double time = 0;
+			static double x = 0, u = 0;
+
+			// Reset timer
+			start = std::chrono::system_clock::now();
+			time += dt;
+
+			u = pid.update(x, dt);
+			x += u * dt;
+
+			std::cout << "Time: " << time << ", value: " << x << std::endl;
+		}
+	}*/
 
 	system("pause");
 }
