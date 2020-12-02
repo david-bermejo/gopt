@@ -257,9 +257,11 @@ namespace gopt
 	using Matrix = Matrix_t<double, R, C>;
 #endif
 
+	using Mat2 = Matrix_t<double, 2, 2>;
 	using Mat3 = Matrix_t<double, 3, 3>;
 	using Mat4 = Matrix_t<double, 4, 4>;
 
+	using Mat2f = Matrix_t<float, 2, 2>;
 	using Mat3f = Matrix_t<float, 3, 3>;
 	using Mat4f = Matrix_t<float, 4, 4>;
 }
