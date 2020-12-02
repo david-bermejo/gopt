@@ -39,7 +39,6 @@ struct Observations
 	Observations() {}
 };
 
-
 Vector<10> f(const Vector<10>& x, double t)
 {
 	State res;
@@ -57,7 +56,7 @@ Vector<10> f(const Vector<10>& x, double t)
 	} params;
 	//////////////////////
 
-	tvc[1] = radians(5.0) * std::sin(2 * gopt::pi<> * 0.1 * t);
+	tvc[1] = radians(5.0) * std::sin(2 * gopt::pi<> * t);
 
 	const double thrust_val = (t <= 5 ? 11 : 0);
 
@@ -102,7 +101,7 @@ Vector<6> h(const Vector<10>& x, double t)
 	} params;
 	//////////////////////
 
-	tvc[1] = radians(5.0) * std::sin(2 * gopt::pi<> * 0.1 * t);
+	tvc[1] = radians(5.0) * std::sin(2 * gopt::pi<> * t);
 
 	const double thrust_val = (t <= 5 ? 11 : 0);
 
@@ -131,7 +130,6 @@ int main()
 #if _DEBUG
 	unit_tests();
 #endif
-
 	State state;
 	state.value = 0;
 	state.q = Quaternion(1.0);
@@ -140,24 +138,26 @@ int main()
 	obs.accel = { 0 };
 	obs.gyro = { 0 };
 
-	Matrix<10, 10> Pxx = gopt::eye<double, 10>() * 0.1;
-	Matrix<10, 10> Q = gopt::eye<double, 10>() * 100;
-	Matrix<6, 6> R = gopt::eye<double, 6>() * 100;
+	Matrix<10, 10> Pxx = gopt::eye<double, 10>() * 0.001;
+	Matrix<10, 10> Q = gopt::eye<double, 10>() * 0.001;
+	Matrix<6, 6> R = gopt::eye<double, 6>() * 0.001;
 
 	auto start = std::chrono::system_clock::now();
 	State cons;
 	cons.value = state.value;
-	const int N = 500;
+	const int N = 50000;
+	const double h0 = 0.001;
+
 	for (int i = 0; i < N; i++)
 	{
 		State curr_state;
 		curr_state.value = state.value;
 
-		gopt::DP45(f, curr_state.value, i * 0.01, (i+1)*0.01, 1e-9, 1e-9);
-		obs.accel = (curr_state.dx - state.dx) / 0.01;
+		curr_state.value = gopt::DP45(f, curr_state.value, i*h0, (i+1)*h0, 1e-6, 1e-6);
+		obs.accel = (curr_state.dx - state.dx) / h0;
 		obs.gyro = curr_state.omega;
 
-		ekf(state.value, obs.value, Pxx, Q, R, f, h, i*0.01, (i+1)*0.01);
+		ekf(state.value, obs.value, Pxx, Q, R, f, h, i*h0, (i+1)*h0);
 		state.q = gopt::normalize(state.q);
 	}
 
@@ -165,7 +165,8 @@ int main()
 	const double time = static_cast<std::chrono::duration<double, std::nano>>(end - start).count() / 1e9;
 	std::cout << "Time: " << time << " s, each: " << time / N << "s." << std::endl;
 	std::cout << state.value << std::endl;
-	std::cout << "Real: " << gopt::DP45(f, cons.value, 0.0, N * 0.01, 1e-9, 1e-9) << std::endl << std::endl;
+	std::cout << "Real: " << gopt::DP45(f, cons.value, 0.0, N * h0, 1e-9, 1e-9) << std::endl << std::endl;
+
 
 	//const double time = static_cast<std::chrono::duration<double, std::nano>>(end - start).count() / 1e9;
 

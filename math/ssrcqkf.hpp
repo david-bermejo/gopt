@@ -74,7 +74,8 @@ namespace gopt
 				 const Matrix_t<T, Nz, Nz>& R,
 				 F& f,
 				 H& h,
-				 const T& t)
+				 const T& t0,
+				 const T& tf)
 	{
 		/*
 		 * Calculate constants
@@ -82,7 +83,6 @@ namespace gopt
 
 		//N+1 vertices of the n-dimensional simplex.
 		const static std::array<Vector_t<T, Nx>, Nx + 1> vertices = internal::build_simplex_vertices<T, Nx>();
-		//const static std::array<Vector_t<T, Nx>, Nx + 1> vertices = internal::build_simplex_vertices<T, Nx>();
 
 		// 3rd degree Chevyshev-Laguerre polynomial roots.
 		const static std::array<T, 3> poly_roots = internal::poly_roots<T>(Nx);
@@ -100,7 +100,6 @@ namespace gopt
 		// Calculate x_est using function f provided.
 		Vector_t<T, Nx> x_est(0);
 		Vector_t<T, Nx> X_est[3][2*Nx+2];
-		//std::array<std::array<Vector_t<T, Nx>, 2 * Nx + 2>, 3> X_est;
 
 		for (int j = 0; j < 3; j++)
 		{
@@ -110,8 +109,8 @@ namespace gopt
 			{
 				const static T roots[3] = { std::sqrt(2 * poly_roots[0]), std::sqrt(2 * poly_roots[1]), std::sqrt(2 * poly_roots[2]) };
 				const Vector_t<T, Nx> tmp = roots[j] * (Cxx * vertices[i]);
-				X_est[j][2 * i] = f(x + tmp, t);
-				X_est[j][2 * i + 1] = f(x - tmp, t);
+				X_est[j][2 * i] = f(x + tmp);
+				X_est[j][2 * i + 1] = f(x - tmp);
 				partial_v += X_est[j][2 * i] + X_est[j][2 * i + 1];
 			}
 
@@ -140,7 +139,9 @@ namespace gopt
 		 */
 
 		// Calculate Cholesky factorization of Pxx_est.
+		std::cout << "Doing..." << std::endl;
 		Cxx = cholesky(Pxx_est);
+		std::cout << "Done." << std::endl;
 
 		// Calculate z_est using function h provided.
 		Vector_t<T, Nz> z_est(0);
@@ -157,8 +158,8 @@ namespace gopt
 				const Vector_t<T, Nx> tmp = roots[j] * (Cxx * vertices[i]);
 				X_est[j][2 * i] = x + tmp;
 				X_est[j][2 * i + 1] = x - tmp;
-				Z_est[j][2 * i] = h(X_est[j][2 * i], t);
-				Z_est[j][2 * i + 1] = h(X_est[j][2 * i + 1], t);
+				Z_est[j][2 * i] = h(X_est[j][2 * i], tf);
+				Z_est[j][2 * i + 1] = h(X_est[j][2 * i + 1], tf);
 				partial_v += Z_est[j][2 * i] + Z_est[j][2 * i + 1];
 			}
 

@@ -4,6 +4,7 @@
 #include "matrix.hpp"
 #include "constants.hpp"
 #include "quaternion.hpp"
+#include "sparse_matrix.hpp"
 
 namespace gopt
 {
@@ -154,6 +155,121 @@ namespace gopt
 			for (int j = 0; j < R; j++)
 				tmp += v[j] * m[j][i];
 			res[i] = tmp;
+		}
+
+		return res;
+	}
+
+	template <typename T, unsigned int R, unsigned int C>
+	Matrix_t<T, R, C> operator+(const Sparse_t<T, R, C>& lhs, Matrix_t<T, R, C> rhs)
+	{
+		for (int i = 0; i < R; i++)
+			for (const auto& e : lhs.data[i])
+				rhs[i][e.first] += e.second;
+		return rhs;
+	}
+
+	template <typename T, unsigned int R, unsigned int C>
+	Matrix_t<T, R, C> operator+(Matrix_t<T, R, C> lhs, const Sparse_t<T, R, C>& rhs)
+	{
+		for (int i = 0; i < R; i++)
+			for (const auto& e : rhs.data[i])
+				lhs[i][e.first] += e.second;
+		return lhs;
+	}
+
+	template <typename T, unsigned int R, unsigned int C>
+	Matrix_t<T, R, C> operator-(const Sparse_t<T, R, C>& lhs, Matrix_t<T, R, C> rhs)
+	{
+		for (int i = 0; i < R; i++)
+			for (const auto& e : lhs.data[i])
+				rhs[i][e.first] -= e.second;
+		return rhs;
+	}
+
+	template <typename T, unsigned int R, unsigned int C>
+	Matrix_t<T, R, C> operator-(Matrix_t<T, R, C> lhs, const Sparse_t<T, R, C>& rhs)
+	{
+		for (int i = 0; i < R; i++)
+			for (const auto& e : rhs.data[i])
+				lhs[i][e.first] -= e.second;
+		return lhs;
+	}
+
+	template <typename T, unsigned int R, unsigned int C, unsigned int Cols>
+	Matrix_t<T, R, Cols> operator*(const Sparse_t<T, R, C>& lhs, const Matrix_t<T, C, Cols>& rhs)
+	{
+		Matrix_t<T, R, Cols> res;
+
+		for (int i = 0; i < R; i++)
+		{
+			for (int j = 0; j < Cols; j++)
+			{
+				T sum = 0;
+				for (const auto& e : lhs.data[i])
+					sum += e.second * rhs[e.first][j];
+				res[i][j] = sum;
+			}
+		}
+
+		return res;
+	}
+
+	template <typename T, unsigned int R, unsigned int C, unsigned int Cols>
+	Matrix_t<T, R, Cols> operator*(const Matrix_t<T, R, C>& lhs, const Sparse_t<T, C, Cols>& rhs)
+	{
+		Matrix_t<T, R, Cols> res;
+
+		for (int i = 0; i < R; i++)
+		{
+			for (int j = 0; j < Cols; j++)
+			{
+				T sum = 0;
+				for (int k = 0; k < C; k++) {
+					const auto& ref = rhs.data[k];
+					if (const auto& it = ref.find(j); it != ref.end())
+						sum += lhs[i][k] * it->second;
+				}
+
+				res[i][j] = sum;
+			}
+		}
+
+		return res;
+	}
+
+	template <typename T, unsigned int R, unsigned int C>
+	Vector_t<T, R> operator*(const Sparse_t<T, R, C>& m, const Vector_t<T, C>& v)
+	{
+		Vector_t<T, R> res;
+
+		for (int i = 0; i < R; i++)
+		{
+			T sum = 0;
+			for (const auto& e : m.data[i])
+				sum += e.second * v[e.first];
+			res[i] = sum;
+		}
+
+		return res;
+	}
+
+	template <typename T, unsigned int R, unsigned int C>
+	Vector_t<T, C> operator*(const Vector_t<T, R>& v, const Sparse_t<T, R, C>& m)
+	{
+		Vector_t<T, C> res;
+
+		for (int i = 0; i < C; i++)
+		{
+			T sum = 0;
+
+			for (int j = 0; j < R; j++) {
+				const auto& ref = m.data[j];
+				if (const auto& it = ref.find(i); it != ref.end())
+					sum += v[j] * it->second;
+			}
+
+			res[i] = sum;
 		}
 
 		return res;
@@ -365,6 +481,18 @@ namespace gopt
 		for (int i = 0; i < R; i++)
 			for (int j = 0; j < C; j++)
 				res[j][i] = m[i][j];
+
+		return res;
+	}
+
+	template <typename T, unsigned int R, unsigned int C>
+	Sparse_t<T, C, R> transpose(const Sparse_t<T, R, C>& m)
+	{
+		Sparse_t<T, C, R> res;
+
+		for (int i = 0; i < R; i++)
+			for (const auto& e : m.data[i])
+				res.data[e.first][i] = e.second;
 
 		return res;
 	}

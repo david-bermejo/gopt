@@ -9,3 +9,5 @@
 #include "vector.hpp"
 #include "ssrcqkf.hpp"
 #include "ekf.hpp"
+#include "sparse_matrix.hpp"
+#include "ckf.hpp"
