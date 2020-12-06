@@ -170,32 +170,5 @@ int main()
 
 	//const double time = static_cast<std::chrono::duration<double, std::nano>>(end - start).count() / 1e9;
 
-	// TEST CODE
-	/*const double Kp = 5;
-	const double Ki = 3;
-	const double Kd = 1;
-
-	PID pid(Kp, Ki, Kd);
-	pid.set(1.0);
-
-	while (true)
-	{
-		auto end = std::chrono::system_clock::now();
-		if (const double dt = static_cast<std::chrono::duration<double, std::nano>>(end - start).count() / 1e9; dt >= 0.01)
-		{
-			static double time = 0;
-			static double x = 0, u = 0;
-
-			// Reset timer
-			start = std::chrono::system_clock::now();
-			time += dt;
-
-			u = pid.update(x, dt);
-			x += u * dt;
-
-			std::cout << "Time: " << time << ", value: " << x << std::endl;
-		}
-	}*/
-
 	system("pause");
 }
