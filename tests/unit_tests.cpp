@@ -1,4 +1,4 @@
-#include "math/gopt.hpp"
+#include "../math/gopt.hpp"
 
 #include <iostream>
 #include <cassert>

@@ -5,7 +5,7 @@
 #include <chrono>
 #include <iomanip>
 
-#include "unit_tests.hpp"
+#include "tests/unit_tests.hpp"
 #include <iostream>
 
 using namespace gopt;
