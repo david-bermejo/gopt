@@ -447,7 +447,7 @@ namespace gopt
 		return Vector_t<T, 3>
 		{
 			std::atan2(r21, r11),
-			std::atan2(-m[2][0], std::sqrt(r11*r11 + r21*r21)),
+			std::atan2(-m[2][0], std::sqrt(std::clamp(r11*r11 + r21*r21, 0, 1))),
 			std::atan2(m[2][1], m[2][2])
 		};
 	}
@@ -468,7 +468,7 @@ namespace gopt
 		return Vector_t<T, 3>
 		{
 			std::atan2(2*(a*b + c*d), a2 - b2 - c2 + d2),
-			-std::asin(2*(b*d - a*c)),
+			std::asin(std::clamp(2*(a*c - b*d), (T)-1, (T)1)),
 			std::atan2(2*(a*d + b*c), a2 + b2 - c2 - d2)
 		};
 	}
