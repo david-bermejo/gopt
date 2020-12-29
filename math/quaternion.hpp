@@ -79,8 +79,9 @@ namespace gopt
 		Quaternion_t(const V& first, const Ts&... ts)
 			: w(static_cast<T>(first)), v{ ts... } {}
 
+		// Positive angle produces counter clockwise rotation around axis (right-hand rule).
 		Quaternion_t(const T& angle, const Vector_t<T, 3>& axis)
-			: w(std::cos(angle/2)), v(axis * std::sin(angle/2)) {}
+			: w(std::cos(angle/2)), v(axis * std::sin(-angle/2)) {}
 
 		Quaternion_t(const Quaternion_t& q)
 			: w(q.w), v(q.v) {}
@@ -88,6 +89,11 @@ namespace gopt
 		template <typename V, typename = std::enable_if_t<!std::is_same_v<T, V>>>
 		Quaternion_t(const Quaternion_t<V>& q)
 			: w(q.w), v(q.v) {}
+
+		friend Quaternion_t operator-(const Quaternion_t& q)
+		{
+			return Quaternion_t(-q.w, -q.x, -q.y, -q.z);
+		}
 
 		friend Quaternion_t operator+(Quaternion_t lhs, const Quaternion_t& rhs)
 		{
