@@ -10,3 +10,4 @@
 #include "ekf.hpp"
 #include "sparse_matrix.hpp"
 #include "ckf.hpp"
+#include "particleswarm.hpp"
