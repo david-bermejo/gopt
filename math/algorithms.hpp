@@ -442,12 +442,12 @@ namespace gopt
 	Vector_t<T, 3> euler_angles(const Matrix_t<T, 4, 4>& m)
 	{
 		const T r11 = m[0][0];
-		const T r21 = m[1][1];
+		const T r21 = m[1][0];
 
 		return Vector_t<T, 3>
 		{
 			std::atan2(r21, r11),
-			std::atan2(-m[2][0], std::sqrt(std::clamp(r11*r11 + r21*r21, 0, 1))),
+			std::atan2(-m[2][0], std::sqrt(r11*r11 + r21*r21)),
 			std::atan2(m[2][1], m[2][2])
 		};
 	}
