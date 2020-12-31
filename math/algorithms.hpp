@@ -621,7 +621,7 @@ namespace gopt
 			P[p[i]][i] = 1;
 	}
 
-	// Solves a system of equations in the form of A*x=b
+	// Solves a system of linear equations in the form of A*x=b
 	template <typename T, unsigned int N>
 	Vector_t<T, N> solve(const Matrix_t<T, N, N>& A, const Vector_t<T, N>& b)
 	{
@@ -654,6 +654,48 @@ namespace gopt
 		}
 
 		return x;
+	}
+
+	// Solve a system of linear equations in the form of A*X=B
+	template <typename T, unsigned int N>
+	Matrix_t<T, N, N> solve(const Matrix_t<T, N, N>& A, const Matrix_t<T, N, N>& B)
+	{
+		Matrix_t<T, N, N> P, L, U;
+		plu(A, P, L, U);
+
+		Matrix_t<T, N, N> X;
+		for (int k = 0; k < N; k++)
+		{
+			Vector_t<T, N> b;
+			for (int i = 0; i < N; i++)
+				b[i] = B[i][k];
+
+			// Sort b vector using P permutation matrix (equivalent to solving the system: P*b_t=b)
+			const auto b_t = transpose(P) * b;
+
+			// Solve the system: L*y=b_t
+			Vector_t<T, N> y;
+			for (int i = 0; i < N; i++)
+			{
+				T sum = 0;
+
+				for (int j = 0; j < i; j++)
+					sum += L[i][j] * y[j];
+
+				y[i] = (b_t[i] - sum) / L[i][i];
+			}
+
+			// Solve the system: U*x=y
+			for (int i = N - 1; i >= 0; i--)
+			{
+				T sum = 0;
+				for (int j = N - 1; j > i; j--)
+					sum += U[i][j] * X[j][k];
+				X[i][k] = (y[i] - sum) / U[i][i];
+			}
+		}
+
+		return X;
 	}
 
 	template <typename T, unsigned int N>
