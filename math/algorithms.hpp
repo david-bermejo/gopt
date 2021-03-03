@@ -536,6 +536,80 @@ namespace gopt
 		return res;
 	}
 
+	template <typename T, typename F, unsigned int N>
+	Vector_t<T, N> gradient(F& f, const Vector_t<T, N>& x0)
+	{
+		Vector_t<T, N> res;
+
+		const T dx = 1e-7;
+		const T f_x0 = f(x0);
+
+		for (int i = 0; i < N; i++)
+		{
+			Vector_t<T, N> x = x0;
+			x[i] += dx;
+
+			res[i] = (f(x) - f_x0) / dx;
+		}
+
+		return res;
+	}
+
+	template <typename T, unsigned int N, unsigned int M>
+	Matrix_t<T, M, N> jacobian(Vector_t<T, M> (*f)(const Vector_t<T, N>&), const Vector_t<T, N>& x0)
+	{
+		Matrix_t<T, M, N> res;
+
+		const T dx = 1e-7;
+		const Vector_t<T, M> f_x0 = f(x0);
+
+		for (int i = 0; i < N; i++)
+		{
+			Vector_t<T, N> x = x0;
+			x[i] += dx;
+			const Vector_t<T, M> f_x = f(x);
+
+			for (int j = 0; j < M; j++)
+				res[j][i] = (f_x[j] - f_x0[j]) / dx;
+		}
+
+		return res;
+	}
+
+	template <typename T, typename F, unsigned int N>
+	Matrix_t<T, N, N> hessian(F& f, const Vector_t<T, N>& x0)
+	{
+		Matrix_t<T, N, N> res;
+
+		const T dx = 1e-7;
+		const T f_x0 = f(x0);
+
+		for (int i = 0; i < N; i++)
+		{
+			Vector_t<T, N> x1 = x0;
+			x1[i] += dx;
+			const T f_x1 = f(x1);
+
+			for (int j = 0; j < i; j++)
+			{
+				Vector_t<T, N> x2 = x0, x3 = x0;
+				x2[i] += dx;
+				x2[j] += dx;
+				x3[j] += dx;
+
+				res[i][j] = (f(x2) - f(x3) - f_x1 + f_x0) / (dx * dx);
+				res[j][i] = res[i][j];
+			}
+
+			Vector_t<T, N> x4 = x0;
+			x4[i] -= dx;
+
+			res[i][i] = (f_x1 - 2*f_x0 + f(x4)) / (dx * dx);
+		}
+
+		return res;
+	}
+
 	template <typename T, unsigned int R, unsigned int C>
 	void lu(const Matrix_t<T, R, C>& M, Matrix_t<T, R, C>& L, Matrix_t<T, R, C>& U)
 	{
@@ -696,6 +770,46 @@ namespace gopt
 		}
 
 		return X;
+	}
+
+	template <typename T, typename F>
+	T newton(F& f, const T x0, const T rtol = 1e-6, const T atol = 1e-6)
+	{
+		T x_n;
+		T x_new = x0;
+		T f_n = f(x0);
+
+		const T dx = 1e-7;
+
+		do {
+			x_n = x_new;
+			const T df_n = (f(x_n + dx) - f_n) / dx;
+			x_new -= f_n / df_n;
+			f_n = f(x_new);
+		}
+		while (std::abs(x_new - x_n) >= rtol || std::abs(f_n) >= atol);
+
+		return x_new;
+	}
+
+	template <typename T, typename F, unsigned int N>
+	Vector_t<T, N> newton(F& f, const Vector_t<T, N>& x0, const T rtol = 1e-6, const T atol = 1e-6)
+	{
+		Vector_t<T, N> x_n;
+		Vector_t<T, N> x_new = x0;
+		Vector_t<T, N> f_n = f(x0);
+
+		do
+		{
+			x_n = x_new;
+			const auto J = jacobian(f, x_n);
+
+			x_new -= solve(J, f_n);
+			f_n = f(x_new);
+		}
+		while ((x_new - x_n).length() >= rtol || f_n.length() >= atol);
+
+		return x_new;
 	}
 
 	template <typename T, unsigned int N>
