@@ -43,12 +43,9 @@ namespace gopt
 		}
 
 		const auto x_dot2 = f(x + x_dot * (tf - t0), tf);
-		for (int i = 0; i < Nx; i++) {
-			for (int j = 0; j < Nx; j++) {
+		for (int i = 0; i < Nx; i++)
+			for (int j = 0; j < Nx; j++)
 				Fk[i][j] = (f_eval[j][i] - x_dot[i] + f_eval2[j][i] - x_dot2[i]) / (2*dx);
-				//Fk2[i][j] = (f_eval2[j][i] - x_dot2[i]) / dx;
-			}
-		}
 
 		const Matrix_t<T, Nx, Nx> P_est = P + (Fk * P * transpose(Fk) + Q) * (tf - t0);
 
@@ -71,7 +68,7 @@ namespace gopt
 					Hk[i][j] = (h_eval[j][i] - z_est[i]) / dx;
 
 		const auto HT = transpose(Hk);
-		const auto K = P_est * HT * inverse(Hk * P_est * HT + R);
+		const auto K = solve(Hk * P_est * HT + R, P_est * HT);
 
 		x = x_est + K * (z - z_est);
 		P = (eye<T, Nx>() - K * Hk) * P_est;
