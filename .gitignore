@@ -8,3 +8,4 @@ gopt.sln
 gopt.vcxproj
 gopt.vcxproj.filters
 gopt.vcxproj.user
+deps/matplotlib-cpp/*

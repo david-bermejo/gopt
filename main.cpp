@@ -152,7 +152,7 @@ Vector_t<double, 13> dynamics(const Vector_t<double, 13>& x, const double& t, co
 	const double cx = std::cos(tvc[0]);
 	const double sy = std::sin(tvc[1]);
 	const double cy = std::cos(tvc[1]);
-	const Vec3 T = Vec3(-sy, -sx * cy, cx * cy) * T_val;
+	const Vec3 T = Vec3(sy, -sx * cy, cx * cy) * T_val;
 
 	const double m = p.m0 + p.m_dot * std::min(t, p.tb);
 	const double Ixx = p.Ixx + p.Ixx_dot * std::min(t, p.tb);
@@ -238,7 +238,7 @@ double objective(const Vector_t<double, 6>& K, const double phi, const double th
 	params.d_com_ct = 0.4; // m
 	params.tvc = 0; // rad
 	params.tvc0 = 0; // rad
-	params.tvc_dot = radians<>(500); // rad/s
+	params.tvc_dot = radians(500.0); // rad/s
 	params.tvc_dot_sign = 0;
 	params.t0 = 0; // s
 	params.period = 0; // s
@@ -268,7 +268,6 @@ double objective(const Vector_t<double, 6>& K, const double phi, const double th
 		{
 			// PID
 			const Vec2 set_point = 0;
-			//const Vec2 set_point = (t < 2) ? Vec2(0) : Vec2(radians(15.0));
 			error = set_point - project(state.q, Vec3(0, 0, 1));
 
 			// Proportional
@@ -367,51 +366,8 @@ double objective(const Vector_t<double, 6>& K, const double phi, const double th
 	return D;
 }
 
-Vec2 func(const Vec2& x)
-{
-	Vec2 res;
-
-	res[0] = std::cos(x[0]) + std::exp(x[0] * x[1]);
-	res[1] = x[0] + x[1] - 2;
-
-	return res;
-}
-
-double minimize(const Vec2& x)
-{
-	return x.magnitude() + 4 * std::cos(x[0]) + std::sin(x[0] * x[1]);
-}
-
-Vector_t<double, 1> eq(const Vec2& x)
-{
-	return { x[0] };
-}
-
-Vector_t<double, 1> ineq(const Vec2& x)
-{
-	return { -x.magnitude() + 4 };
-}
-
-template <typename T, unsigned int N, unsigned int M>
-using fcn_ptr = Vector_t<T, M>(*)(const Vector_t<T, N>&);
-
-template <unsigned int N, typename T = double>
-constexpr fcn_ptr<T, N, 0> nullfptr = 0;
-
-#include "math/hcint.hpp"
-#include "math/globalsearch.hpp"
-
-double optim(const Vec2& x)
-{
-	return std::cos(x[0] + 0.5) * std::cos(x[1] + 0.5);
-}
-
 int main()
 {
-	const Vec2 lo_b = { -1, -1 };
-	const Vec2 up_b = { 3, 3 };
-	std::cout << "Result: " << globalsearch(optim, lo_b, up_b) << std::endl;
-
 	const double Kp = 10;
 	const double Ki = 1;
 	const double Kd = 1;
@@ -434,9 +390,8 @@ int main()
 	{
 		return objective(x, phi, theta, 0.0, tvc_bound);
 	};
-	const auto best = globalsearch(fcn, lb, ub);
-	//const auto best = particleswarm(fcn, lb, ub, 100, 100);
-	//const Vector_t<double, 8> best = 0;
+
+	const auto best = particleswarm(fcn, lb, ub, 100, 10);
 	std::cout << "Best: " << best << ", objective value: " << std::endl;
 
 	Result result;
@@ -477,41 +432,18 @@ int main()
 
 	// Plot
 	plt::figure();
-	plt::plot(result.x, x, "-", { {"label", "x"} });
-	plt::plot(result.x, y, "-", { {"label", "y"} });
-	plt::plot(result.x, z, "-", { {"label", "z"} });
+	plt::named_plot("x", result.x, x, "-");
+	plt::named_plot("y", result.x, y, "-");
+	plt::named_plot("z", result.x, z, "-");
 	plt::title("Position");
 	plt::xlabel("t (s)");
 	plt::ylabel("position (m)");
 	plt::legend();
 	plt::xlim(0.0, result.x.back());
 
-	/*
 	plt::figure();
-	plt::plot(result.x, vel, "-");
-	plt::title("Velocity");
-	plt::xlabel("t (s)");
-	plt::ylabel("v (m/s)");
-	plt::xlim(0.0, result.x.back());
-
-	plt::figure();
-	plt::plot(result.x, dyn_pressure, "-");
-	plt::title("Dynamic pressure");
-	plt::xlabel("t (s)");
-	plt::ylabel("q (Pa)");
-	plt::xlim(0.0, result.x.back());
-
-	plt::figure();
-	plt::plot(result.x, AoA, "-");
-	plt::title("Angle of Attack");
-	plt::xlabel("t (s)");
-	plt::ylabel("$\\alpha\\:(\\circ)$");
-	plt::xlim(0.0, result.x.back());
-	*/
-
-	plt::figure();
-	plt::plot(result.x, err_x, "-", { {"label", "x"} });
-	plt::plot(result.x, err_y, "-", { {"label", "y"} });
+	plt::named_plot("x", result.x, err_x, "-");
+	plt::named_plot("y", result.x, err_y, "-");
 	plt::title("PID Controller error");
 	plt::xlabel("t (s)");
 	plt::ylabel("$Error\\:(\\circ)$");
@@ -519,8 +451,8 @@ int main()
 	plt::xlim(0.0, result.x.back());
 
 	plt::figure();
-	plt::plot(result.x, theta_x, "-", { {"label", "$\\theta_{x}$"} });
-	plt::plot(result.x, theta_y, "-", { {"label", "$\\theta_{y}$"} });
+	plt::named_plot("x", result.x, theta_x, "-");
+	plt::named_plot("y", result.x, theta_y, "-");
 	plt::title("TVC");
 	plt::xlabel("t (s)");
 	plt::ylabel("$deflection\\:(\\circ)$");
@@ -542,6 +474,5 @@ int main()
 	std::cout << std::endl << "At 300 deg: ";
 	objective(best, phi, theta, radians(300.0), tvc_bound, true);
 
-	system("pause");
 	return 0;
 }

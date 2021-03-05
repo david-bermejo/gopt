@@ -68,7 +68,7 @@ namespace gopt
 					Hk[i][j] = (h_eval[j][i] - z_est[i]) / dx;
 
 		const auto HT = transpose(Hk);
-		const auto K = solve(Hk * P_est * HT + R, P_est * HT);
+		const auto K = P_est * HT * inverse(Hk * P_est * HT + R);
 
 		x = x_est + K * (z - z_est);
 		P = (eye<T, Nx>() - K * Hk) * P_est;
