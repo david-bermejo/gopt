@@ -202,7 +202,7 @@ namespace gopt
 
 		T* end()
 		{
-			return &data[0][0] + R*C;
+			return &data[0][0] + R * C;
 		}
 
 		const T* end() const
@@ -251,10 +251,10 @@ namespace gopt
 
 #ifdef SINGLE_PRECISION
 	template <unsigned int R, unsigned int C>
-	using Matrix = Matrix_t<float, R, C>;
+	using Mat = Matrix_t<float, R, C>;
 #else
 	template <unsigned int R, unsigned int C>
-	using Matrix = Matrix_t<double, R, C>;
+	using Mat = Matrix_t<double, R, C>;
 #endif
 
 	using Mat2 = Matrix_t<double, 2, 2>;
@@ -264,4 +264,339 @@ namespace gopt
 	using Mat2f = Matrix_t<float, 2, 2>;
 	using Mat3f = Matrix_t<float, 3, 3>;
 	using Mat4f = Matrix_t<float, 4, 4>;
+
+	template <typename T>
+	class Matrix
+	{
+	private:
+		unsigned int _rows = 0;
+		unsigned int _cols = 0;
+		T** data = nullptr;
+
+	private:
+		Matrix& add(const Matrix& m)
+		{
+			assert(_rows == m._rows && _cols == m._cols);
+
+			for (int i = 0; i < _rows; i++)
+				for (int j = 0; j < _cols; j++)
+					data[i][j] += m.data[i][j];
+
+			return *this;
+		}
+
+		Matrix& sub(const Matrix& m)
+		{
+			assert(_rows == m._rows && _cols == m._cols);
+
+			for (int i = 0; i < _rows; i++)
+				for (int j = 0; j < _cols; j++)
+					data[i][j] -= m.data[i][j];
+			
+			return *this;
+		}
+
+		Matrix& mul(const Matrix& m)
+		{
+			assert(_cols == m._rows);
+
+			Matrix<T> res(_rows, m._cols);
+
+			for (int i = 0; i < _rows; i++)
+			{
+				for (int j = 0; j < m._cols; j++)
+				{
+					T tmp = 0;
+					for (int k = 0; k < _cols; k++)
+						tmp += data[i][k] * m.data[k][j];
+					
+					res.data[i][j] = tmp;
+				}
+			}
+
+			return move(res);
+		}
+
+		Matrix& mul(const T& s)
+		{
+			for (int i = 0; i < _rows; i++)
+				for (int j = 0; j < _cols; j++)
+					data[i][j] *= s;
+			
+			return *this;
+		}
+
+		Matrix& div(const T& s)
+		{
+			for (int i = 0; i < _rows; i++)
+				for (int j = 0; j < _cols; j++)
+					data[i][j] /= s;
+			
+			return *this;
+		}
+
+	public:
+		Matrix() {}
+
+		Matrix(unsigned int rows, unsigned int cols)
+			: _rows(rows), _cols(cols), data(new T*[rows])
+		{
+			data[0] = new T[rows * cols];
+
+			T* const beg = data[0];
+			for (int i = 1; i < rows; i++)
+				data[i] = beg + i * cols;
+		}
+
+		Matrix(const Matrix& m)
+			: _rows(m._rows), _cols(m._cols), data(new T*[m._rows])
+		{
+			data[0] = new T[_rows * _cols];
+			std::copy(m.data[0], &m.data[0][_rows * _cols], data[0]);
+
+			T* const beg = data[0];
+			for (int i = 1; i < _rows; i++)
+				data[i] = beg + i * _cols;
+		}
+
+		~Matrix()
+		{
+			if (data)
+			{
+				delete[] data[0];
+				delete[] data;
+			}
+		}
+
+		template <typename... Ts>
+		Matrix& fill(Ts...  ts)
+		{
+			assert(_rows * _cols == sizeof...(ts));
+
+			unsigned int index = 0;
+			((data[0][index++] = static_cast<T>(ts)), ...);
+
+			return *this;
+		}
+
+		Matrix& fill(T* src)
+		{
+			std::copy(src, src + _rows * _cols, data[0]);
+			return *this;
+		}
+
+		Matrix& move(Matrix& m)
+		{
+			_rows = m._rows;
+			_cols = m._cols;
+
+			if (data)
+			{
+				delete[] data[0];
+				delete[] data;
+			}
+
+			data = m.data;
+			m.data = nullptr;
+
+			m._rows = 0;
+			m._cols = 0;
+
+			return *this;
+		}
+
+		T& operator()(unsigned int i, unsigned int j)
+		{
+			assert(i < _rows && j < _cols);
+			return data[i][j];
+		}
+
+		const T& operator()(unsigned int i, unsigned int j) const
+		{
+			assert(i < _rows && j < _cols);
+			return data[i][j];
+		}
+
+		friend Matrix operator-(const Matrix& m)
+		{
+			Matrix<T> res(m._rows, m._cols);
+
+			for (int i = 0; i < m._rows; i++)
+				for (int j = 0; j < m._cols; j++)
+					res.data[i][j] = -m.data[i][j];
+			return res;
+		}
+
+		friend Matrix operator+(Matrix lhs, const Matrix& rhs)
+		{
+			return lhs.add(rhs);
+		}
+
+		friend Matrix operator-(Matrix lhs, const Matrix& rhs)
+		{
+			return lhs.sub(rhs);
+		}
+
+		friend Matrix operator*(const Matrix& lhs, const Matrix& rhs)
+		{
+			assert(lhs._cols == rhs._rows);
+
+			Matrix<T> res(lhs._rows, rhs._cols);
+
+			for (int i = 0; i < lhs._rows; i++)
+			{
+				for (int j = 0; j < rhs._cols; j++)
+				{
+					T tmp = 0;
+					for (int k = 0; k < lhs._cols; k++)
+						tmp += lhs.data[i][k] * rhs.data[k][j];
+					
+					res.data[i][j] = tmp;
+				}
+			}
+
+			return res;
+		}
+
+		friend Matrix operator*(const T& s, Matrix m)
+		{
+			return m.mul(s);
+		}
+
+		friend Matrix operator*(Matrix m, const T& s)
+		{
+			return m.mul(s);
+		}
+
+		friend Matrix operator/(const T& s, Matrix m)
+		{
+			return m.div(s);
+		}
+
+		friend Matrix operator/(Matrix m, const T& s)
+		{
+			return m.div(s);
+		}
+
+		Matrix& operator+=(const Matrix& m)
+		{
+			return add(m);
+		}
+
+		Matrix& operator-=(const Matrix& m)
+		{
+			return sub(m);
+		}
+
+		Matrix& operator*=(const Matrix& m)
+		{
+			return mul(m);
+		}
+
+		Matrix& operator*=(const T& s)
+		{
+			return mul(s);
+		}
+
+		Matrix& operator/=(const T& s)
+		{
+			return div(s);
+		}
+
+		bool operator==(const Matrix& m) const
+		{
+			if (_rows != m._rows || _cols != m._cols)
+				return false;
+			
+			for (int i = 0; i < _rows; i++)
+				for (int j = 0; j < _cols; j++)
+					if (data[i][j] != m.data[i][j])
+						return false;
+			return true;
+		}
+
+		bool operator!=(const Matrix& m) const
+		{
+			if (_rows != m._rows || _cols != m._cols)
+				return true;
+			
+			for (int i = 0; i < _rows; i++)
+				for (int j = 0; j < _cols; j++)
+					if (data[i][j] != m.data[i][j])
+						return true;
+			return false;
+		}
+
+		bool almost_equal(const Matrix& m) const
+		{
+			if (_rows != m._rows || _cols != m._cols)
+				return false;
+
+			for (int i = 0; i < _rows; i++)
+				for (int j = 0; j < _cols; j++)
+					if (std::abs(data[i][j] - m.data[i][j]) > weak_epsilon<T>)
+						return false;
+			return true;
+		}
+
+		T* begin()
+		{
+			return data[0];
+		}
+
+		const T* begin() const
+		{
+			return data[0];
+		}
+
+		T* end()
+		{
+			return data[0] + _rows * _cols;
+		}
+
+		const T* end() const
+		{
+			return data[0] * _rows * _cols;
+		}
+
+		T* operator[](unsigned int index)
+		{
+			assert(index < _rows);
+			return data[index];
+		}
+
+		const T* operator[](unsigned int index) const
+		{
+			assert(index < _rows);
+			return data[index];
+		}
+
+		std::string toString() const
+		{
+			std::string res = "Matrix<";
+			res += std::string(typeid(T).name()) + ", " + std::to_string(_rows) + ", " + std::to_string(_cols) + ">{";
+			for (int i = 0; i < _rows; i++)
+			{
+				res += "\n\t[" + std::to_string(data[i][0]);
+
+				for (int j = 1; j < _cols; j++)
+					res += ", " + std::to_string(data[i][j]);
+
+				res += "]";
+			}
+			res += "\n}";
+
+			return res;
+		}
+
+		friend std::ostream& operator<<(std::ostream& os, const Matrix<T>& v)
+		{
+			os << v.toString();
+			return os;
+		}
+
+		const unsigned int rows() const { return _rows; }
+		const unsigned int cols() const { return _cols; }
+		const unsigned int size() const { return _rows * _cols; }
+	};
 }

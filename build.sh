@@ -17,5 +17,8 @@ library_paths=(
     "-LC:\msys64\mingw64\lib\python3.8"
 )
 
-${toolchain_path}clang++ --std=c++2a -Wno-ignored-attributes -fopenmp ${cpp_includes[@]} -g ${cpp_files[@]} test.cpp -lpython3.8 -o build/bin
+${toolchain_path}clang++ --std=c++2a -Wno-ignored-attributes -fopenmp ${cpp_includes[@]} -g ${cpp_files[@]} main.cpp -lpython3.8 -o build/bin
+echo "Compilation done."
+echo
+echo "Running program..."
 ./build/bin.exe

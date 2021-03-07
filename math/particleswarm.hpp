@@ -7,8 +7,10 @@
 #include <iostream>
 #include <sstream>
 
-#include <matplotlibcpp.h>
-namespace plt = matplotlibcpp;
+#ifdef PLOT_PROGRESS
+	#include <matplotlibcpp.h>
+	namespace plt = matplotlibcpp;
+#endif
 
 namespace gopt
 {
@@ -117,11 +119,13 @@ namespace gopt
 			}
 		}
 
+#ifdef PLOT_PROGRESS
 		plt::figure(1);
 		plt::plot(indices_array, score_array, "*");
 		plt::title(std::string("Best score: ") + std::to_string(g_best_score));
 		plt::xlim(indices_array.front(), indices_array.back());
 		plt::grid(true);
+#endif
 
 		return g_best_position;
 	}
