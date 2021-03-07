@@ -343,6 +343,14 @@ namespace gopt
 			return *this;
 		}
 
+		template <typename F, typename... Args>
+		Vector& fill(F&& f, Args... args)
+		{
+			for (int i = 0; i < len; i++)
+				data[i] = f(args...);
+			return *this;
+		}
+
 		Vector& move(Vector& v)
 		{
 			len = v.len;

@@ -417,6 +417,15 @@ namespace gopt
 			return *this;
 		}
 
+		template <typename F, typename... Args>
+		Matrix& fill(F&& f, Args... args)
+		{
+			for (int i = 0; i < _rows; i++)
+				for (int j = 0; j < _cols; j++)
+					data[i][j] = f(args...);
+			return *this;
+		}
+
 		Matrix& move(Matrix& m)
 		{
 			_rows = m._rows;

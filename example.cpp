@@ -1,17 +1,18 @@
 #include "math/gopt.hpp"
 using namespace gopt;
 
+#include <random>
 #include <vector>
 
 int main()
 {
-    Vector<double> v(10);
-    std::vector<double> src(10);
-    for (int i = 0; i < 10; i++)
-        src[i] = i,
-    v.fill(src);
+    Matrix<double> m(3, 4);
 
-    std::cout << v << std::endl;
+    std::default_random_engine gen;
+    std::normal_distribution<double> dist(0.0, 1.0);
+    m.fill([&]() { return dist(gen); });
+
+    std::cout << m << std::endl;
 
     return 0;
 }
