@@ -359,6 +359,16 @@ namespace gopt
 				data[i] = beg + i * _cols;
 		}
 
+		Matrix(Matrix&& m)
+			: _rows(m._rows), _cols(m._cols), data(m.data)
+		{
+			m._rows = 0;
+			m._cols = 0;
+			m.data = nullptr;
+
+			std::cout << "Called" << std::endl;
+		}
+
 		~Matrix()
 		{
 			if (data)
@@ -366,6 +376,22 @@ namespace gopt
 				delete[] data[0];
 				delete[] data;
 			}
+		}
+
+		Matrix& operator=(const Matrix& m)
+		{
+			_rows = m._rows;
+			_cols = m._cols;
+
+			data = new T*[_rows];
+			data[0] = new T[_rows * _cols];
+			std::copy(m.data[0], &m.data[0][_rows * _cols], data[0]);
+
+			T* const beg = data[0];
+			for (int i = 1; i < _rows; i++)
+				data[i] = beg + i * _cols;
+			
+			return *this;
 		}
 
 		Matrix& fill(const T& s)
