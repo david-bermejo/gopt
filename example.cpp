@@ -6,13 +6,13 @@ using namespace gopt;
 
 int main()
 {
-    Matrix<double> m(3, 4);
+    Vector<double> v(5);
+    v.fill([]() { return 122; });
+    Vector<double> u(v);
 
-    std::default_random_engine gen;
-    std::normal_distribution<double> dist(0.0, 1.0);
-    m.fill([&]() { return dist(gen); });
+    u = v;
 
-    std::cout << m << std::endl;
+    std::cout << v << ", " << u << std::endl;
 
     return 0;
 }

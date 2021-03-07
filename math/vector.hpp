@@ -310,14 +310,29 @@ namespace gopt
 		Vector(const Vector& v)
 			: len(v.len), data(new T[v.len])
 		{
-			for (unsigned int i = 0; i < len; i++)
-				data[i] = v.data[i];
+			std::copy(v.data, v.data + len, data);
+		}
+
+		Vector(Vector&& v)
+			: len(v.len), data(v.data)
+		{
+			v.len = 0;
+			v.data = nullptr;
 		}
 
 		~Vector()
 		{
 			if (data)
 				delete[] data;
+		}
+
+		Vector& operator=(const Vector& v)
+		{
+			len = v.len;
+			data = new T[len];
+			std::copy(v.data, v.data + len, data);
+
+			return *this;
 		}
 
 		Vector& fill(const T& s)
@@ -343,7 +358,7 @@ namespace gopt
 			return *this;
 		}
 
-		template <typename F, typename... Args>
+		template <typename F, typename... Args, typename = std::enable_if_t<std::is_invocable_v<F, Args...>>>
 		Vector& fill(F&& f, Args... args)
 		{
 			for (int i = 0; i < len; i++)

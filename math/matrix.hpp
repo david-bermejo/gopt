@@ -365,8 +365,6 @@ namespace gopt
 			m._rows = 0;
 			m._cols = 0;
 			m.data = nullptr;
-
-			std::cout << "Called" << std::endl;
 		}
 
 		~Matrix()
@@ -417,7 +415,7 @@ namespace gopt
 			return *this;
 		}
 
-		template <typename F, typename... Args>
+		template <typename F, typename... Args, typename = std::enable_if_t<std::is_invocable_v<F, Args...>>>
 		Matrix& fill(F&& f, Args... args)
 		{
 			for (int i = 0; i < _rows; i++)
