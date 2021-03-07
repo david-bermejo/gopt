@@ -368,7 +368,13 @@ namespace gopt
 			}
 		}
 
-		template <typename... Ts>
+		Matrix& fill(const T& s)
+		{
+			std::fill_n(data[0], _rows * _cols, s);
+			return *this;
+		}
+
+		template <typename... Ts, typename = std::enable_if_t<(sizeof...(Ts) > 1)>>
 		Matrix& fill(Ts...  ts)
 		{
 			assert(_rows * _cols == sizeof...(ts));
@@ -379,9 +385,9 @@ namespace gopt
 			return *this;
 		}
 
-		Matrix& fill(T* src)
+		Matrix& fill(const std::vector<T>& src)
 		{
-			std::copy(src, src + _rows * _cols, data[0]);
+			std::copy(src.data(), src.data() + _rows * _cols, data[0]);
 			return *this;
 		}
 

@@ -8,6 +8,7 @@
 #include <type_traits>
 #include <memory>
 #include <iostream>
+#include <vector>
 #include "constants.hpp"
 
 namespace gopt
@@ -302,7 +303,7 @@ namespace gopt
 		Vector(unsigned int size)
 			: len(size), data(new T[size]) {}
 
-		template <typename... Ts, typename = std::enable_if_t<!(std::is_integral_v<T> && sizeof...(Ts) == 1)>>
+		template <typename... Ts, typename = std::enable_if_t<!(std::conjunction_v<std::is_integral_v<Ts>...> && sizeof...(Ts) == 1)>>
 		Vector(Ts... ts)
 			: len(sizeof...(Ts)), data(new T[]{ts...}) {}
 
@@ -319,7 +320,13 @@ namespace gopt
 				delete[] data;
 		}
 
-		template <typename... Ts>
+		Vector& fill(const T& s)
+		{
+			std::fill_n(data, len, s);
+			return *this;
+		}
+
+		template <typename... Ts, typename = std::enable_if_t<(sizeof...(Ts) > 1)>>
 		Vector& fill(Ts... ts)
 		{
 			assert(len == sizeof...(ts));
@@ -330,9 +337,9 @@ namespace gopt
 			return *this;
 		}
 
-		Vector& fill(T* src)
+		Vector& fill(const std::vector<T>& src)
 		{
-			std::copy(src, src + len, data);
+			std::copy(src.data(), src.data() + len, data);
 			return *this;
 		}
 
