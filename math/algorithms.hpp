@@ -8,6 +8,24 @@
 
 namespace gopt
 {
+	template <typename F, typename T>
+	Vector<T> apply(F&& f, const Vector<T>& v)
+	{
+		Vector<T> res(v.size());
+		for (int i = 0; i < res.size(); i++)
+			res(i) = f(v(i));
+		return res;
+	}
+
+	template <typename F, typename T, unsigned int S>
+	Vector_t<T, S> apply(F&& f, const Vector_t<T, S>& v)
+	{
+		Vector_t<T, S> res;
+		for (int i = 0; i < S; i++)
+			res[i] = f(v[i]);
+		return res;
+	}
+
 	template <typename T, unsigned int S>
 	T max(const Vector_t<T, S>& v)
 	{
@@ -155,6 +173,42 @@ namespace gopt
 			for (int j = 0; j < R; j++)
 				tmp += v[j] * m[j][i];
 			res[i] = tmp;
+		}
+
+		return res;
+	}
+
+	template <typename T>
+	Vector<T> operator*(const Matrix<T>& m, const Vector<T>& v)
+	{
+		assert(m.cols() == v.size());
+
+		Vector<T> res(m.rows());
+
+		for (int i = 0; i < res.size(); i++)
+		{
+			T tmp = 0;
+			for (int j = 0; j < m.cols(); j++)
+				tmp += m(i,j) * v(j);
+			res(i) = tmp;
+		}
+
+		return res;
+	}
+
+	template <typename T>
+	Vector<T> operator*(const Vector<T>& v, const Matrix<T>& m)
+	{
+		assert(v.size() == m.rows());
+		
+		Vector<T> res(m.cols());
+
+		for (int i = 0; i < res.size(); i++)
+		{
+			T tmp = 0;
+			for (int j = 0; j < m.rows(); j++)
+				tmp += v(j) * m(j,i);
+			res(i) = tmp;
 		}
 
 		return res;

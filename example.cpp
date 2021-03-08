@@ -6,13 +6,8 @@ using namespace gopt;
 
 int main()
 {
-    Vector<double> v(5);
-    v.fill([]() { return 122; });
-    Vector<double> u(v);
-
-    u = v;
-
-    std::cout << v << ", " << u << std::endl;
+    Vector<double> v(3);
+    Matrix<double> m(3,2);
 
     return 0;
 }
