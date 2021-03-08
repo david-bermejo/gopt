@@ -329,6 +329,10 @@ namespace gopt
 		Vector& operator=(const Vector& v)
 		{
 			len = v.len;
+
+			if (data)
+				delete[] data;
+			
 			data = new T[len];
 			std::copy(v.data, v.data + len, data);
 

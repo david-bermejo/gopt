@@ -381,6 +381,11 @@ namespace gopt
 			_rows = m._rows;
 			_cols = m._cols;
 
+			if (data) {
+				delete[] data[0];
+				delete[] data;
+			}
+			
 			data = new T*[_rows];
 			data[0] = new T[_rows * _cols];
 			std::copy(m.data[0], &m.data[0][_rows * _cols], data[0]);
