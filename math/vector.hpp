@@ -16,6 +16,9 @@ namespace gopt
 	template <typename T, unsigned int S>
 	class Vector_t
 	{
+	public:
+		using type = T;
+	
 	private:
 		std::array<T, S> data;
 
@@ -245,6 +248,9 @@ namespace gopt
 	template <typename T>
 	class Vector
 	{
+	public:
+		using type = T;
+		
 	private:
 		T* data = nullptr;
 		unsigned int len = 0;
