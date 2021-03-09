@@ -30,7 +30,7 @@ int main()
     Vec2 ub(1);
     Vec2 lb(-1);
 
-    const auto res = particleswarm(fcn, lb, ub, 200, 100, {0.5, 0.5, 0.9});
+    const auto res = particleswarm(fcn, lb, ub, 200, 100, {0.5, 0.5, 0.9, false});
     std::cout << res << std::endl;
 #endif
 
