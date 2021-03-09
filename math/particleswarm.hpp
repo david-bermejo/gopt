@@ -25,23 +25,31 @@ namespace gopt
 		T best_score;
 	};
 
-	template <typename F, typename T, unsigned int S>
-	Vector_t<T, S> particleswarm(F&& f, const Vector_t<T, S>& lb, const Vector_t<T, S>& ub, const unsigned int n_particles = 2*S, const unsigned int max_iter = 1000)
+	template <typename T>
+	struct PSOptions
 	{
-		return particleswarm(f, lb, ub, S, n_particles, max_iter);
+		T c1;
+		T c2;
+		T w;
+	};
+
+	template <typename F, typename T, unsigned int S>
+	Vector_t<T, S> particleswarm(F&& f, const Vector_t<T, S>& lb, const Vector_t<T, S>& ub, const unsigned int n_particles = 2*S, const unsigned int max_iter = 1000, const PSOptions<T>& opts = {1, 1, 0.9})
+	{
+		return particleswarm(f, lb, ub, S, n_particles, max_iter, opts);
 	}
 
 	template <typename F, typename V, typename T = typename V::type>
-	V particleswarm(F&& f, const V& lb, const V& ub, const unsigned int size, const unsigned int n_particles, const unsigned int max_iter)
+	V particleswarm(F&& f, const V& lb, const V& ub, const unsigned int size, const unsigned int n_particles, const unsigned int max_iter = 1000, const PSOptions<T>& opts = {1, 1, 0.9})
 	{
 		static constexpr bool is_dynamic = std::is_same_v<std::remove_cvref_t<V>, Vector<T>>;
 
 		std::default_random_engine gen(time(0));
 		std::uniform_real_distribution<> dist(0.0, 1.0);
 
-		const T w = 0.9;
-		const T c1 = 1;
-		const T c2 = 1;
+		const T c1 = opts.c1;
+		const T c2 = opts.c2;
+		const T w = opts.w;
 		const unsigned int max_iter_wo_change = 0.3 * max_iter;
 
 		T g_best_score = std::numeric_limits<T>::max();
