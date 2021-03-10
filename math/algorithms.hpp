@@ -8,6 +8,29 @@
 
 namespace gopt
 {
+	template <typename T>
+	Vector<T> mulw(const Vector<T>& lhs, const Vector<T>& rhs)
+	{
+		assert(lhs.size() == rhs.size());
+		Vector<T> res(lhs.size());
+
+		for (int i = 0; i < res.size(); i++)
+			res[i] = lhs[i] * rhs[i];
+		
+		return res;
+	}
+
+	template <typename T, unsigned int S>
+	Vector_t<T,S> mulw(const Vector_t<T,S>& lhs, const Vector_t<T,S>& rhs)
+	{
+		Vector_t<T,S> res;
+
+		for (int i = 0; i < S; i++)
+			res[i] = lhs[i] * rhs[i];
+		
+		return res;
+	}
+
 	template <typename F, typename T>
 	Vector<T> apply(F&& f, const Vector<T>& v)
 	{
