@@ -167,6 +167,14 @@ namespace gopt
 			return true;
 		}
 
+		T accumulate() const
+		{
+			T res = 0;
+			for (int i = 0; i < S; i++)
+				res += data[i];
+			return res;
+		}
+
 		T magnitude() const
 		{
 			T res = 0;
@@ -505,6 +513,14 @@ namespace gopt
 				if (std::abs(data[i] - v.data[i]) > weak_epsilon<T>)
 					return false;
 			return true;
+		}
+
+		T accumulate() const
+		{
+			T res = 0;
+			for (int i = 0; i < len; i++)
+				res += data[i];
+			return res;
 		}
 
 		T magnitude() const
