@@ -467,7 +467,7 @@ namespace gopt
 
 			Vector<T> res;
 			res.len = _cols;
-			res._destroyable = false;
+			res.matrix_fetched = true;
 			res.data = data[i];
 			
 			return res;
