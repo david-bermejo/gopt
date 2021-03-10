@@ -461,6 +461,18 @@ namespace gopt
 			return data[i][j];
 		}
 
+		Vector<T> operator()(unsigned int i) const
+		{
+			assert(i < _rows);
+
+			Vector<T> res;
+			res.len = _cols;
+			res._destroyable = false;
+			res.data = data[i];
+			
+			return res;
+		}
+
 		friend Matrix operator-(const Matrix& m)
 		{
 			Matrix<T> res(m._rows, m._cols);

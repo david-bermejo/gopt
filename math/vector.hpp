@@ -254,14 +254,20 @@ namespace gopt
 	using Vec4f = Vector_t<float, 4>;
 
 	template <typename T>
+	class Matrix;
+
+	template <typename T>
 	class Vector
 	{
 	public:
 		using type = T;
 		
 	private:
-		T* data = nullptr;
 		unsigned int len = 0;
+		bool _destroyable = false;
+		T* data = nullptr;
+
+		friend class Matrix<T>;
 
 	private:
 		Vector& add(const Vector& v)
@@ -315,37 +321,47 @@ namespace gopt
 		Vector() {}
 
 		Vector(unsigned int size)
-			: len(size), data(new T[size]) {}
+			: len(size), _destroyable(true), data(new T[size]) {}
 
 		template <typename... Ts, typename = std::enable_if_t<!(std::conjunction_v<std::is_integral_v<Ts>...> && sizeof...(Ts) == 1)>>
 		Vector(Ts... ts)
-			: len(sizeof...(Ts)), data(new T[]{ts...}) {}
+			: len(sizeof...(Ts)), _destroyable(true), data(new T[]{ts...}) {}
 
 		Vector(const Vector& v)
-			: len(v.len), data(new T[v.len])
+			: len(v.len), _destroyable(v._destroyable), data(new T[v.len])
 		{
 			std::copy(v.data, v.data + len, data);
 		}
 
+		template <typename V, typename = std::enable_if_t<!std::is_same_v<T, V>>>
+		Vector(const Vector<V>& v)
+			: len(v.size()), _destroyable(v.destroyable()), data(new T[v.size()])
+		{
+			for (int i = 0; i < len; i++)
+				data[i] = static_cast<T>(v[i]);
+		}
+
 		Vector(Vector&& v)
-			: len(v.len), data(v.data)
+			: len(v.len), _destroyable(v._destroyable), data(v.data)
 		{
 			v.len = 0;
+			v._destroyable = false;
 			v.data = nullptr;
 		}
 
 		~Vector()
 		{
-			if (data)
+			if (_destroyable)
 				delete[] data;
 		}
 
 		Vector& operator=(const Vector& v)
 		{
-			len = v.len;
-
-			if (data)
+			if (_destroyable)
 				delete[] data;
+			
+			len = v.len;
+			_destroyable = v._destroyable;
 			
 			data = new T[len];
 			std::copy(v.data, v.data + len, data);
@@ -389,23 +405,21 @@ namespace gopt
 			len = v.len;
 			v.len = 0;
 
+			_destroyable = v._destroyable;
+			v._destroyable = false;
+
 			data = v.data;
 			v.data = nullptr;
 		}
 
 		void resize(const unsigned int size)
 		{
-			delete[] data;
+			if (_destroyable)
+				delete[] data;
+			
 			len = size;
+			_destroyable = true;
 			data = new T[len];
-		}
-
-		template <typename V, typename = std::enable_if_t<!std::is_same_v<T, V>>>
-		Vector(const Vector<V>& v)
-			: len(v.size()), data(new T[v.size()])
-		{
-			for (int i = 0; i < len; i++)
-				data[i] = static_cast<T>(v[i]);
 		}
 
 		T& operator()(unsigned int index)
@@ -588,6 +602,7 @@ namespace gopt
 			return os;
 		}
 
+		const bool destroyable() const { return _destroyable; }
 		const unsigned int size() const { return len; }
 	};
 }
