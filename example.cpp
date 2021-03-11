@@ -8,8 +8,9 @@ int main()
     m(1) = Vector<double>(3).fill(3);
     m(3) = Vector<double>(3).fill(2);
 
-    std::cout << m(3) << std::endl;
-    std::cout << m << std::endl;
+    Vector<double> v(3);
+    v.fill(1);
+    std::cout << normalize(v) << std::endl;
 
     return 0;
 }

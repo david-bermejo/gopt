@@ -72,9 +72,9 @@ namespace gopt
 
 		return res;
 	}
-
-	template <typename T, unsigned int S>
-	T dot(const Vector_t<T, S>& lhs, const Vector_t<T, S>& rhs)
+	
+	template <typename T>
+	auto dot(const T& lhs, const T& rhs)
 	{
 		return lhs * rhs;
 	}
@@ -135,16 +135,10 @@ namespace gopt
 		return std::acos(dot(lhs, rhs) / (lhs.length() * rhs.length()));
 	}
 
-	template <typename T, unsigned int S>
-	Vector_t<T, S> normalize(const Vector_t<T, S>& v)
-	{
-		return v / v.length();
-	}
-
 	template <typename T>
-	Quaternion_t<T> normalize(const Quaternion_t<T>& q)
+	T normalize(const T& t)
 	{
-		return q / q.length();
+		return t / t.length();
 	}
 
 	template <typename T>
