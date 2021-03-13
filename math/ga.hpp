@@ -6,6 +6,9 @@
 #include <numeric>
 #include "vector.hpp"
 
+#include <matplotlibcpp.h>
+namespace plt = matplotlibcpp;
+
 namespace gopt
 {
 
@@ -155,10 +158,15 @@ namespace gopt
         std::vector<T> offspring_fitness(Np);
 
         // Evaluate fitness function for initial population
+        #pragma omp parallel for
         for (int i = 0; i < Np; i++)
             population_fitness[i] = f(population[i]);
         
+        std::vector<double> xaxis;
+        std::vector<double> yaxis;
+
         // Ieration loop
+        plt::figure();
         for (int k = 0; k < max_iter; k++)
         {
             // Tournament selection
@@ -173,6 +181,7 @@ namespace gopt
             // Mutation
             offsprings = mutation_poly(offsprings, p_mut, eta_mut, lb, ub);
 
+            #pragma omp parallel for
             for (int j = 0; j < Np; j++)
                 offspring_fitness[j] = f(offsprings[j]);
             
@@ -193,6 +202,19 @@ namespace gopt
             {
                 population[i] = comb_pop[sorted_indices[i]];
                 population_fitness[i] = comb_fit[sorted_indices[i]];
+            }
+
+            if (true)
+            {
+                xaxis.push_back(k);
+                yaxis.push_back(population_fitness[0]);
+
+                plt::plot(xaxis, yaxis, "red");
+                plt::xlabel("Iteration");
+                plt::ylabel("Cost");
+                plt::title(std::string("Score: ") + std::to_string(population_fitness[0]));
+                plt::draw();
+                plt::pause(0.001);
             }
         }
 

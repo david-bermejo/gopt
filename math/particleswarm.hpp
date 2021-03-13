@@ -34,16 +34,11 @@ namespace gopt
 		bool print_info = true;
 	};
 
-	template <typename F, typename T, unsigned int S>
-	Vector_t<T, S> particleswarm(F&& f, const Vector_t<T, S>& lb, const Vector_t<T, S>& ub, const unsigned int n_particles = 2*S, const unsigned int max_iter = 1000, const PSOptions<T>& opts = {})
-	{
-		return particleswarm(f, lb, ub, S, n_particles, max_iter, opts);
-	}
-
 	template <typename F, typename V, typename T = typename V::type>
-	V particleswarm(F&& f, const V& lb, const V& ub, const unsigned int size, const unsigned int n_particles, const unsigned int max_iter = 1000, const PSOptions<T>& opts = {})
+	V particleswarm(F&& f, const V& lb, const V& ub, const unsigned int n_particles, const unsigned int max_iter = 1000, const PSOptions<T>& opts = {}, const std::vector<V>& x0 = std::vector<V>(0))
 	{
 		static constexpr bool is_dynamic = std::is_same_v<std::remove_cvref_t<V>, Vector<T>>;
+		const unsigned int size = lb.size();
 
 		std::default_random_engine gen(time(0));
 		std::uniform_real_distribution<> dist(0.0, 1.0);
@@ -70,16 +65,22 @@ namespace gopt
 		{
 			for (auto& p : particles)
 			{
-				p.position = V(size);
+				if (!x0.size())
+					p.position = V(size);
+				
 				p.velocity = V(size);
 				p.best_position = V(size);
 			}
 		}
 
-		for (auto& p : particles)
+		for (int i = 0; auto& p : particles)
 		{
-			for (int j = 0; j < size; j++)
-				p.position[j] = lb[j] + (ub[j] - lb[j]) * dist(gen);
+			if (x0.size())
+				p.position = x0[i];
+			else {
+				for (int j = 0; j < size; j++)
+					p.position[j] = lb[j] + (ub[j] - lb[j]) * dist(gen);
+			}
 
 			if constexpr (is_dynamic) {
 				p.velocity.fill(0.0);
@@ -88,6 +89,8 @@ namespace gopt
 			}
 			p.best_position = p.position;
 			p.best_score = g_best_score;
+
+			i++;
 		}
 
 		unsigned int iter_wo_change = 0;
