@@ -11,3 +11,4 @@
 #include "sparse_matrix.hpp"
 #include "ckf.hpp"
 #include "particleswarm.hpp"
+#include "ga.hpp"
