@@ -2,9 +2,6 @@
 #include "math/gopt.hpp"
 using namespace gopt;
 
-#include <matplotlibcpp.h>
-namespace plt = matplotlibcpp;
-
 double gravity(const double h)
 {
 	const double Rt = 6371000;
@@ -217,10 +214,9 @@ double objective(const Vector_t<double, 6>& K, const double phi, const double th
 	// This is right
 	State state;
 
-	Quat qx = Quat(phi, Vec3(1, 0, 0));
-	Quat qy = Quat(theta, Vec3(0, 1, 0));
-	Quat qz = Quat(psi, Vec3(0, 0, 1));
-
+	Quat qx = Quat(radians(10.0), Vec3(1, 0, 0));
+	Quat qy = Quat(radians(10.0), Vec3(0, 1, 0));
+	Quat qz = Quat(radians(10.0), Vec3(0, 0, 1));
 	state.q = qx * qy * qz;
 
 	Params params;
@@ -429,37 +425,6 @@ int main()
 		dyn_pressure[i] = result.y[i][17];
 		AoA[i] = degrees(result.y[i][18]);
 	}
-
-	// Plot
-	plt::figure();
-	plt::named_plot("x", result.x, x, "-");
-	plt::named_plot("y", result.x, y, "-");
-	plt::named_plot("z", result.x, z, "-");
-	plt::title("Position");
-	plt::xlabel("t (s)");
-	plt::ylabel("position (m)");
-	plt::legend();
-	plt::xlim(0.0, result.x.back());
-
-	plt::figure();
-	plt::named_plot("x", result.x, err_x, "-");
-	plt::named_plot("y", result.x, err_y, "-");
-	plt::title("PID Controller error");
-	plt::xlabel("t (s)");
-	plt::ylabel("$Error\\:(\\circ)$");
-	plt::legend();
-	plt::xlim(0.0, result.x.back());
-
-	plt::figure();
-	plt::named_plot("x", result.x, theta_x, "-");
-	plt::named_plot("y", result.x, theta_y, "-");
-	plt::title("TVC");
-	plt::xlabel("t (s)");
-	plt::ylabel("$deflection\\:(\\circ)$");
-	plt::legend();
-	plt::xlim(0.0, result.x.back());
-
-	plt::show();
 
 	printf("Kp = [%.17e 0; 0 %.17e]\n", best[0], best[1]);
 	printf("Ki = [%.17e 0; 0 %.17e]\n", best[2], best[3]);

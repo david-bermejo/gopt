@@ -81,7 +81,7 @@ namespace gopt
 
 		// Positive angle produces counter clockwise rotation around axis (right-hand rule).
 		Quaternion_t(const T& angle, const Vector_t<T, 3>& axis)
-			: w(std::cos(angle/2)), v(axis * std::sin(-angle/2)) {}
+			: w(std::cos(angle/2)), v(axis * std::sin(angle/2)) {}
 
 		Quaternion_t(const Quaternion_t& q)
 			: w(q.w), v(q.v) {}

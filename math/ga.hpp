@@ -6,9 +6,6 @@
 #include <numeric>
 #include "vector.hpp"
 
-#include <matplotlibcpp.h>
-namespace plt = matplotlibcpp;
-
 namespace gopt
 {
 
@@ -166,7 +163,6 @@ namespace gopt
         std::vector<double> yaxis;
 
         // Ieration loop
-        plt::figure();
         for (int k = 0; k < max_iter; k++)
         {
             // Tournament selection
@@ -209,12 +205,12 @@ namespace gopt
                 xaxis.push_back(k);
                 yaxis.push_back(population_fitness[0]);
 
-                plt::plot(xaxis, yaxis, "red");
+                /*plt::plot(xaxis, yaxis, "red");
                 plt::xlabel("Iteration");
                 plt::ylabel("Cost");
                 plt::title(std::string("Score: ") + std::to_string(population_fitness[0]));
                 plt::draw();
-                plt::pause(0.001);
+                plt::pause(0.001);*/
             }
         }
 
