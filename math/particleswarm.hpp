@@ -35,7 +35,7 @@ namespace gopt
 	};
 
 	template <typename F, typename V, typename T = typename V::type>
-	V particleswarm(F&& f, const V& lb, const V& ub, const unsigned int n_particles, const unsigned int max_iter = 1000, const PSOptions<T>& opts = {}, const std::vector<V>& x0 = std::vector<V>(0))
+	V particleswarm(F&& f, const V& lb, const V& ub, const unsigned int n_particles, const unsigned int max_iter = 1000, const PSOptions<T>& opts = {})
 	{
 		static constexpr bool is_dynamic = std::is_same_v<std::remove_cvref_t<V>, Vector<T>>;
 		const unsigned int size = lb.size();
@@ -65,9 +65,7 @@ namespace gopt
 		{
 			for (auto& p : particles)
 			{
-				if (!x0.size())
-					p.position = V(size);
-				
+				p.position = V(size);
 				p.velocity = V(size);
 				p.best_position = V(size);
 			}
@@ -75,12 +73,8 @@ namespace gopt
 
 		for (int i = 0; auto& p : particles)
 		{
-			if (x0.size())
-				p.position = x0[i];
-			else {
-				for (int j = 0; j < size; j++)
-					p.position[j] = lb[j] + (ub[j] - lb[j]) * dist(gen);
-			}
+			for (int j = 0; j < size; j++)
+				p.position[j] = lb[j] + (ub[j] - lb[j]) * dist(gen);
 
 			if constexpr (is_dynamic) {
 				p.velocity.fill(0.0);
