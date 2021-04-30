@@ -6,8 +6,28 @@
 #include "quaternion.hpp"
 #include "sparse_matrix.hpp"
 
+#include <algorithm>
+#include <array>
+
 namespace gopt
 {
+	// Linear interpolation (it clamps the given value if out of range)
+	template <typename T, std::size_t N>
+	T interp1d(const std::array<T,N>& x, const std::array<T,N>& y, T xval)
+	{
+		xval = std::clamp(xval, x.front(), x.back());
+
+		unsigned int idx = 0;
+		for (int i = 1; i < N; i++) {
+			if (xval <= x[i]) {
+				idx = i-1;
+				break;
+			}
+		}
+
+		return y[idx] + (y[idx+1] - y[idx])/(x[idx+1] - x[idx]) * (xval - x[idx]);
+	}
+
 	template <typename T>
 	Vector<T> mulw(const Vector<T>& lhs, const Vector<T>& rhs)
 	{
