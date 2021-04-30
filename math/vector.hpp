@@ -135,7 +135,7 @@ namespace gopt
 
 		Vector_t& operator*=(const T& s)
 		{
-			return add(s);
+			return mul(s);
 		}
 
 		Vector_t& operator/=(const T& s)
