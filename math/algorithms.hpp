@@ -546,21 +546,11 @@ namespace gopt
 	template <typename T>
 	Vector_t<T, 3> euler_angles(const Quaternion_t<T>& q)
 	{
-		const T a = q.w;
-		const T b = q.x;
-		const T c = q.y;
-		const T d = q.z;
-
-		const T a2 = a * a;
-		const T b2 = b * b;
-		const T c2 = c * c;
-		const T d2 = d * d;
-
 		return Vector_t<T, 3>
 		{
-			std::atan2(2*(a*b + c*d), a2 - b2 - c2 + d2),
-			std::asin(std::clamp(2*(a*c - b*d), (T)-1, (T)1)),
-			std::atan2(2*(a*d + b*c), a2 + b2 - c2 - d2)
+			std::atan2(2*(q.w*q.z + q.x*q.y), static_cast<T>(1) - 2*(q.y*q.y + q.z*q.z)),
+			std::asin(std::clamp(2*(q.w*q.y - q.z*q.x), static_cast<T>(-1), static_cast<T>(1))),
+			std::atan2(2*(q.w*q.x + q.y*q.z), static_cast<T>(1) - 2*(q.x*q.x + q.y*q.y))
 		};
 	}
 
