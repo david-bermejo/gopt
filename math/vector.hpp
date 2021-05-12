@@ -235,6 +235,7 @@ namespace gopt
 		}
 
 		constexpr unsigned int size() const { return S; }
+		static constexpr unsigned int Size() { return S; }
 	};
 
 #ifdef SINGLE_PRECISION

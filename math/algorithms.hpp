@@ -646,21 +646,21 @@ namespace gopt
 		return res;
 	}
 
-	template <typename T, unsigned int N, unsigned int M>
-	Matrix_t<T, M, N> jacobian(Vector_t<T, M> (*f)(const Vector_t<T, N>&), const Vector_t<T, N>& x0)
+	template <typename T, typename F, unsigned int N, typename V = std::invoke_result_t<F, Vector_t<T, N>>>
+	Matrix_t<T, V::Size(), N> jacobian(F&& f, const Vector_t<T, N>& x0)
 	{
-		Matrix_t<T, M, N> res;
+		Matrix_t<T, V::Size(), N> res;
 
 		const T dx = 1e-7;
-		const Vector_t<T, M> f_x0 = f(x0);
+		const auto f_x0 = f(x0);
 
 		for (int i = 0; i < N; i++)
 		{
 			Vector_t<T, N> x = x0;
 			x[i] += dx;
-			const Vector_t<T, M> f_x = f(x);
+			const auto f_x = f(x);
 
-			for (int j = 0; j < M; j++)
+			for (int j = 0; j < V::Size(); j++)
 				res[j][i] = (f_x[j] - f_x0[j]) / dx;
 		}
 
