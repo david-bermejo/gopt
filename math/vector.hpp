@@ -324,9 +324,9 @@ namespace gopt
 		Vector(unsigned int size)
 			: len(size), data(new T[size]) {}
 
-		template <typename... Ts, typename = std::enable_if_t<!(std::conjunction_v<std::is_integral_v<Ts>...> && sizeof...(Ts) == 1)>>
-		Vector(Ts... ts)
-			: len(sizeof...(Ts)), data(new T[]{ts...}) {}
+		template <typename... Ts>
+		Vector(Ts... ts) requires (!(std::conjunction_v<std::is_integral<Ts>...> && sizeof...(Ts) == 1))
+			: len(sizeof...(Ts)), data(new T[sizeof...(Ts)]{ts...}) {}
 
 		Vector(const Vector& v)
 			: len(v.len), data(new T[v.len])
@@ -334,8 +334,8 @@ namespace gopt
 			std::copy(v.data, v.data + len, data);
 		}
 
-		template <typename V, typename = std::enable_if_t<!std::is_same_v<T, V>>>
-		Vector(const Vector<V>& v)
+		template <typename V>
+		Vector(const Vector<V>& v) requires (!std::is_same_v<T, V>)
 			: len(v.size()), data(new T[v.size()])
 		{
 			for (int i = 0; i < len; i++)
@@ -382,8 +382,8 @@ namespace gopt
 			return *this;
 		}
 
-		template <typename... Ts, typename = std::enable_if_t<(sizeof...(Ts) > 1)>>
-		Vector& fill(Ts... ts)
+		template <typename... Ts>
+		Vector& fill(Ts... ts) requires (sizeof...(Ts) > 1)
 		{
 			assert(len == sizeof...(ts));
 
@@ -399,8 +399,8 @@ namespace gopt
 			return *this;
 		}
 
-		template <typename F, typename... Args, typename = std::enable_if_t<std::is_invocable_v<F, Args...>>>
-		Vector& fill(F&& f, Args... args)
+		template <typename F, typename... Args>
+		Vector& fill(F&& f, Args... args) requires (std::is_invocable_v<F, Args...>)
 		{
 			for (int i = 0; i < len; i++)
 				data[i] = f(args...);
